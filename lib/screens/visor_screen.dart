@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sizer/sizer.dart';
 
 import '../views/ads_view.dart';
 import '../views/product_view.dart';
@@ -9,7 +10,7 @@ import '../providers/visor_provider.dart';
 class VisorScreen extends StatelessWidget {
   const VisorScreen({super.key});
 
-  // Fixed dimensions for main container
+  // Fixed dimensions for desktop container
   static const double _containerWidth = 1366;
   static const double _containerHeight = 768;
 
@@ -22,7 +23,7 @@ class VisorScreen extends StatelessWidget {
     ),
     boxShadow: const [
       BoxShadow(
-        color: Color(0x4D000000), // 0.3 alpha black
+        color: Color(0x4D000000),
         blurRadius: 20,
         spreadRadius: 5,
       ),
@@ -31,37 +32,50 @@ class VisorScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = Device.screenType == ScreenType.mobile;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF2D2D2D),
+      backgroundColor: isMobile ? Colors.white : const Color(0xFF2D2D2D),
+      resizeToAvoidBottomInset: false,
       body: Center(
-        child: Container(
-          width: _containerWidth,
-          height: _containerHeight,
-          decoration: _containerDecoration,
-          clipBehavior: Clip.antiAlias,
-          child: Consumer<VisorProvider>(
-            builder: (context, provider, child) {
-              return GestureDetector(
-                onTap: () => provider.showProductView(),
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 600),
-                  switchInCurve: Curves.easeOut,
-                  switchOutCurve: Curves.easeIn,
-                  child: provider.viewState == VisorViewState.ads
-                      ? AdsView(key: const ValueKey('ads'))
-                      : ProductView(
-                          key: const ValueKey('product'),
-                          product: provider.currentProduct,
-                          imageLoading: provider.imageLoading,
-                          onSearch: (query) => provider.searchProduct(query),
-                          onClear: () => provider.resetProduct(),
-                        ),
-                ),
-              );
-            },
-          ),
-        ),
+        child: isMobile
+            ? SizedBox(
+                width: 100.w,
+                height: 100.h,
+                child: _buildContent(),
+              )
+            : Container(
+                width: _containerWidth,
+                height: _containerHeight,
+                decoration: _containerDecoration,
+                clipBehavior: Clip.antiAlias,
+                child: _buildContent(),
+              ),
       ),
+    );
+  }
+
+  Widget _buildContent() {
+    return Consumer<VisorProvider>(
+      builder: (context, provider, child) {
+        return GestureDetector(
+          onTap: () => provider.showProductView(),
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 600),
+            switchInCurve: Curves.easeOut,
+            switchOutCurve: Curves.easeIn,
+            child: provider.viewState == VisorViewState.ads
+                ? AdsView(key: const ValueKey('ads'))
+                : ProductView(
+                    key: const ValueKey('product'),
+                    product: provider.currentProduct,
+                    imageLoading: provider.imageLoading,
+                    onSearch: (query) => provider.searchProduct(query),
+                    onClear: () => provider.resetProduct(),
+                  ),
+          ),
+        );
+      },
     );
   }
 }

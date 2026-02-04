@@ -1,18 +1,22 @@
+import 'package:sizer/sizer.dart';
+
 class AppSizes {
-  static const double radiusCard = 24;
-  static const double radiusBadge = 14;
-  static const double radiusChip = 16;
-  static const double paddingBase = 24;
-  static const double paddingMedium = 20;
-  static const double paddingXXLarge = 50;
-  static const double paddingSmall = 16;
-  static const double paddingXSmall = 12;
+  static bool get isMobile => Device.screenType == ScreenType.mobile;
+
+  static double get radiusCard => isMobile ? 16.sp : 24;
+  static double get radiusBadge => isMobile ? 10.sp : 14;
+  static double get radiusChip => isMobile ? 12.sp : 16;
+  static double get paddingBase => isMobile ? 16.sp : 24;
+  static double get paddingMedium => isMobile ? 14.sp : 20;
+  static double get paddingXXLarge => isMobile ? 20.sp : 50;
+  static double get paddingSmall => isMobile ? 12.sp : 16;
+  static double get paddingXSmall => isMobile ? 8.sp : 12;
 
   // Typography sizes
-  static const double fontH1 = 64; // price final
-  static const double fontH2 = 40; // product name
-  static const double fontH3 = 36; // price old / discount
-  static const double fontBodyLg = 22;
-  static const double fontBody = 18;
-  static const double fontCaption = 14;
+  static double get fontH1 => isMobile ? 32.sp : 64; // price final
+  static double get fontH2 => isMobile ? 22.sp : 40; // product name
+  static double get fontH3 => isMobile ? 20.sp : 36; // price old / discount
+  static double get fontBodyLg => isMobile ? 14.sp : 22;
+  static double get fontBody => isMobile ? 12.sp : 18;
+  static double get fontCaption => isMobile ? 10.sp : 14;
 }

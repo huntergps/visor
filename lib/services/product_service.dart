@@ -61,6 +61,12 @@ class ProductService {
   /// Image resolution happens in background via pendingImage.
   Future<ProductResult?> _fetchProduct(String normalizedBarcode) async {
     final config = AppConfigService();
+
+    if (config.host.isEmpty) {
+      debugPrint('ProductService: Host no configurado. Configure el servidor en ajustes.');
+      return null;
+    }
+
     final url = '${config.protocol}://${config.host}/api/erp_dat/v1/_process/visor_datos';
     final apiKey = config.apiKey;
     final imageKey = '$_imageKeyPrefix$normalizedBarcode';

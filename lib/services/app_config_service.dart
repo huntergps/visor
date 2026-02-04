@@ -14,6 +14,9 @@ class AppConfigService {
   static const String _keyApiKey = 'api_key';
   static const String _keyIdleTimeout = 'idle_timeout';
   static const String _keyAdsDuration = 'ads_duration';
+  static const String _keyScannerStyle = 'scanner_style';
+  static const String _keyFabPositionRight = 'fab_position_right';
+  static const String _keyFabPositionBottom = 'fab_position_bottom';
 
   // Defaults from environment variables (with fallbacks)
   String get _defaultProtocol => dotenv.env['VISOR_PROTOCOL'] ?? 'http';
@@ -21,6 +24,9 @@ class AppConfigService {
   String get _defaultApiKey => dotenv.env['VISOR_API_KEY'] ?? '';
   static const int _defaultIdleTimeout = 60; // seconds
   static const int _defaultAdsDuration = 5; // seconds
+  static const String _defaultScannerStyle = 'floating';
+  static const double _defaultFabPositionRight = 24.0;
+  static const double _defaultFabPositionBottom = 150.0;
 
   Future<void> init() async {
     await dotenv.load(fileName: '.env');
@@ -32,6 +38,12 @@ class AppConfigService {
   String get apiKey => _prefs.getString(_keyApiKey) ?? _defaultApiKey;
   int get idleTimeout => _prefs.getInt(_keyIdleTimeout) ?? _defaultIdleTimeout;
   int get adsDuration => _prefs.getInt(_keyAdsDuration) ?? _defaultAdsDuration;
+  String get scannerStyle =>
+      _prefs.getString(_keyScannerStyle) ?? _defaultScannerStyle;
+  double get fabPositionRight =>
+      _prefs.getDouble(_keyFabPositionRight) ?? _defaultFabPositionRight;
+  double get fabPositionBottom =>
+      _prefs.getDouble(_keyFabPositionBottom) ?? _defaultFabPositionBottom;
 
   Future<void> setProtocol(String value) async {
     if (value != 'http' && value != 'https') return;
@@ -55,4 +67,15 @@ class AppConfigService {
     if (value < 1) return;
     await _prefs.setInt(_keyAdsDuration, value);
   }
+
+  Future<void> setScannerStyle(String value) async {
+    if (value != 'floating' && value != 'inline') return;
+    await _prefs.setString(_keyScannerStyle, value);
+  }
+
+  Future<void> setFabPositionRight(double value) =>
+      _prefs.setDouble(_keyFabPositionRight, value);
+
+  Future<void> setFabPositionBottom(double value) =>
+      _prefs.setDouble(_keyFabPositionBottom, value);
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/app_sizes.dart';
 import '../../core/app_text_styles.dart';
 
 class DiscountBadge extends StatelessWidget {
@@ -10,38 +11,42 @@ class DiscountBadge extends StatelessWidget {
   // Static painter instance - reused across all badges
   static const _painter = _BadgePainter();
 
-  // Pre-computed style with shadows to avoid copyWith() on every rebuild
-  static final _titleStyle = AppTextStyles.discountBadgeTitle.copyWith(
-    shadows: const [
-      Shadow(
-        color: Color(0x4D000000), // 0.3 alpha black
-        offset: Offset(0, 2),
-        blurRadius: 2,
-      ),
-    ],
-  );
-
   @override
   Widget build(BuildContext context) {
+    final isMobile = AppSizes.isMobile;
+    final badgeW = isMobile ? 72.0 : 104.0;
+    final badgeH = isMobile ? 76.0 : 108.0;
+    final headerH = isMobile ? 26.0 : 38.0;
+
+    final titleStyle = AppTextStyles.discountBadgeTitle.copyWith(
+      shadows: const [
+        Shadow(
+          color: Color(0x4D000000),
+          offset: Offset(0, 2),
+          blurRadius: 2,
+        ),
+      ],
+    );
+
     return SizedBox(
-      width: 104,
-      height: 108,
+      width: badgeW,
+      height: badgeH,
       child: CustomPaint(
         painter: _painter,
         child: Column(
           children: [
             // Top section (Gold)
             SizedBox(
-              height: 38,
+              height: headerH,
               child: Center(
-                child: Text('DESC', style: _titleStyle),
+                child: Text('DESC', style: titleStyle),
               ),
             ),
 
             // Bottom section (Cream)
             Expanded(
               child: Container(
-                padding: const EdgeInsets.only(bottom: 12),
+                padding: EdgeInsets.only(bottom: isMobile ? 8 : 12),
                 alignment: Alignment.center,
                 child: Text(
                   '-$percent%',
@@ -65,7 +70,8 @@ class _BadgePainter extends CustomPainter {
     final h = size.height;
     final radius = 8.0;
     final pointHeight = 12.0;
-    final headerHeight = 38.0;
+    // Use proportional header height
+    final headerHeight = h * 0.352;
 
     final paint = Paint()..style = PaintingStyle.fill;
     final borderPaint = Paint()

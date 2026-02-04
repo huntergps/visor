@@ -37,7 +37,7 @@ class ProductCard extends StatelessWidget {
           // Product image - takes full space
           Positioned.fill(
             child: Padding(
-              padding: const EdgeInsets.all(AppSizes.paddingSmall),
+              padding: EdgeInsets.all(AppSizes.paddingSmall),
               child: _buildProductImage(),
             ),
           ),
@@ -55,19 +55,14 @@ class ProductCard extends StatelessWidget {
   }
 
   Widget _buildProductImage() {
-    // Determine image source
     String? imageSource;
 
-    // 1. Prefer Base64 if available
     if (product.imageBase64 != null && product.imageBase64!.isNotEmpty) {
       imageSource = product.imageBase64;
-    }
-    // 2. Otherwise use URL/Asset
-    else if (product.imageUrl != null && product.imageUrl!.isNotEmpty) {
+    } else if (product.imageUrl != null && product.imageUrl!.isNotEmpty) {
       imageSource = product.imageUrl;
     }
 
-    // 3. Image loading in background - show indicator
     if (imageSource == null || imageSource.isEmpty) {
       if (imageLoading) {
         return _buildLoadingImage();
@@ -75,7 +70,6 @@ class ProductCard extends StatelessWidget {
       return _buildFallbackImage();
     }
 
-    // 4. Image ready - show with fade-in
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 300),
       child: CachedImage(

@@ -19,6 +19,7 @@ class _ConfigDialogState extends State<ConfigDialog> {
   final _adsDurationController = TextEditingController();
 
   String _selectedProtocol = 'http';
+  String _scannerStyle = 'floating';
 
   // Static dropdown items - created once
   static const _protocolItems = [
@@ -39,6 +40,7 @@ class _ConfigDialogState extends State<ConfigDialog> {
     _apiKeyController.text = service.apiKey;
     _timeoutController.text = service.idleTimeout.toString();
     _adsDurationController.text = service.adsDuration.toString();
+    _scannerStyle = service.scannerStyle;
     // No setState needed in initState - build hasn't run yet
   }
 
@@ -51,6 +53,7 @@ class _ConfigDialogState extends State<ConfigDialog> {
     await service.setAdsDuration(
       int.tryParse(_adsDurationController.text) ?? 5,
     );
+    await service.setScannerStyle(_scannerStyle);
 
     if (mounted) {
       Navigator.of(context).pop();
@@ -102,7 +105,23 @@ class _ConfigDialogState extends State<ConfigDialog> {
               ),
               keyboardType: TextInputType.number,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
+            SwitchListTile(
+              title: const Text('Botón escáner flotante'),
+              subtitle: Text(
+                _scannerStyle == 'floating'
+                    ? 'Botón flotante'
+                    : 'En barra de búsqueda',
+              ),
+              value: _scannerStyle == 'floating',
+              onChanged: (v) {
+                setState(() {
+                  _scannerStyle = v ? 'floating' : 'inline';
+                });
+              },
+              contentPadding: EdgeInsets.zero,
+            ),
+            const SizedBox(height: 8),
             const Divider(),
             const SizedBox(height: 8),
             Row(

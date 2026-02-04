@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 
 import '../core/app_colors.dart';
+import '../core/app_sizes.dart';
 import '../models/product.dart';
+import '../services/app_config_service.dart';
+import '../services/scanner_service.dart';
 import '../widgets/common/footer_bar.dart';
 import '../widgets/common/header_bar.dart';
 import '../widgets/product/main_content.dart';
 
 import '../widgets/lava_lamp_background.dart';
 
-/// Floating logo widget - extracted to avoid rebuilds
+/// Floating logo widget - desktop only (positioned over header)
 class _FloatingLogo extends StatelessWidget {
   const _FloatingLogo();
 
@@ -38,7 +41,7 @@ class _LogoFallback extends StatelessWidget {
     borderRadius: BorderRadius.circular(16),
     boxShadow: const [
       BoxShadow(
-        color: Color(0x1A000000), // 0.1 alpha black
+        color: Color(0x1A000000),
         blurRadius: 10,
       ),
     ],
@@ -64,6 +67,72 @@ class _LogoFallback extends StatelessWidget {
   }
 }
 
+class _DraggableFloatingScanner extends StatefulWidget {
+  final Function(String) onSearch;
+
+  const _DraggableFloatingScanner({required this.onSearch});
+
+  @override
+  State<_DraggableFloatingScanner> createState() =>
+      _DraggableFloatingScannerState();
+}
+
+class _DraggableFloatingScannerState extends State<_DraggableFloatingScanner> {
+  late double _right;
+  late double _bottom;
+
+  @override
+  void initState() {
+    super.initState();
+    final config = AppConfigService();
+    _right = config.fabPositionRight;
+    _bottom = config.fabPositionBottom;
+  }
+
+  void _clampPosition(Size screenSize) {
+    const fabSize = 56.0;
+    _right = _right.clamp(0.0, screenSize.width - fabSize);
+    _bottom = _bottom.clamp(0.0, screenSize.height - fabSize - 100);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    _clampPosition(screenSize);
+
+    return Positioned(
+      right: _right,
+      bottom: _bottom,
+      child: GestureDetector(
+        onPanUpdate: (details) {
+          setState(() {
+            _right -= details.delta.dx;
+            _bottom -= details.delta.dy;
+            _clampPosition(screenSize);
+          });
+        },
+        onPanEnd: (_) {
+          final config = AppConfigService();
+          config.setFabPositionRight(_right);
+          config.setFabPositionBottom(_bottom);
+        },
+        onTap: () async {
+          final code = await ScannerService.scan(context);
+          if (code != null) {
+            widget.onSearch(code.toUpperCase());
+          }
+        },
+        child: FloatingActionButton(
+          heroTag: 'scanner_fab',
+          backgroundColor: AppColors.brandPrimary,
+          onPressed: null,
+          child: const Icon(Icons.camera_alt, color: Colors.white),
+        ),
+      ),
+    );
+  }
+}
+
 class ProductView extends StatelessWidget {
   final Product product;
   final bool imageLoading;
@@ -80,6 +149,8 @@ class ProductView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = AppSizes.isMobile;
+
     return LavaLampBackground(
       child: SafeArea(
         child: Stack(
@@ -88,12 +159,20 @@ class ProductView extends StatelessWidget {
               children: [
                 const HeaderBar(),
                 Expanded(
-                  child: MainContent(product: product, imageLoading: imageLoading, onSearch: onSearch, onClear: onClear),
+                  child: MainContent(
+                    product: product,
+                    imageLoading: imageLoading,
+                    onSearch: onSearch,
+                    onClear: onClear,
+                  ),
                 ),
                 const FooterBar(),
               ],
             ),
-            const _FloatingLogo(),
+            if (!isMobile) const _FloatingLogo(),
+            if (isMobile &&
+                AppConfigService().scannerStyle == 'floating')
+              _DraggableFloatingScanner(onSearch: onSearch),
           ],
         ),
       ),

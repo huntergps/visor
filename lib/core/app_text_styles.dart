@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:sizer/sizer.dart';
 import 'app_colors.dart';
+import 'app_sizes.dart';
 
 /// Centralized text styles using locally bundled Open Sans font.
 /// This eliminates the google_fonts network dependency.
@@ -8,173 +10,198 @@ class AppTextStyles {
 
   static const String _fontFamily = 'OpenSans';
 
+  static bool get _mobile => AppSizes.isMobile;
+
   // Header styles
-  static const TextStyle headerTitle = TextStyle(
+  static TextStyle get headerTitle => TextStyle(
     fontFamily: _fontFamily,
-    fontSize: 42,
+    fontSize: _mobile ? 22.sp : 42,
+    fontWeight: FontWeight.w700,
+    color: const Color(0xFFA01438),
+  );
+
+  static TextStyle get headerDivider => TextStyle(
+    fontFamily: _fontFamily,
+    fontSize: _mobile ? 22.sp : 42,
+    fontWeight: FontWeight.w300,
+    color: const Color(0x80A01438),
+  );
+
+  static TextStyle get headerDividerSmall => TextStyle(
+    fontFamily: _fontFamily,
+    fontSize: _mobile ? 18.sp : 36,
+    fontWeight: FontWeight.w300,
+    color: const Color(0x80A01438),
+  );
+
+  static TextStyle get headerSlogan => TextStyle(
+    fontFamily: _fontFamily,
+    fontSize: _mobile ? 16.sp : 32,
+    fontWeight: FontWeight.w400,
+    fontStyle: FontStyle.italic,
+    color: const Color(0xFFA01438),
+  );
+
+  // Mobile-specific header styles (smaller, 2-line layout)
+  static TextStyle get headerTitleMobile => const TextStyle(
+    fontFamily: _fontFamily,
+    fontSize: 20,
     fontWeight: FontWeight.w700,
     color: Color(0xFFA01438),
   );
 
-  static const TextStyle headerDivider = TextStyle(
+  static TextStyle get headerDividerMobile => const TextStyle(
     fontFamily: _fontFamily,
-    fontSize: 42,
-    fontWeight: FontWeight.w300,
-    color: Color(0x80A01438), // 50% opacity
-  );
-
-  static const TextStyle headerDividerSmall = TextStyle(
-    fontFamily: _fontFamily,
-    fontSize: 36,
+    fontSize: 20,
     fontWeight: FontWeight.w300,
     color: Color(0x80A01438),
   );
 
-  static const TextStyle headerSlogan = TextStyle(
+  static TextStyle get headerSloganMobile => const TextStyle(
     fontFamily: _fontFamily,
-    fontSize: 32,
+    fontSize: 12,
     fontWeight: FontWeight.w400,
     fontStyle: FontStyle.italic,
     color: Color(0xFFA01438),
   );
 
   // Price styles
-  static const TextStyle priceMain = TextStyle(
+  static TextStyle get priceMain => TextStyle(
     fontFamily: _fontFamily,
-    fontSize: 64,
+    fontSize: _mobile ? 36.sp : 64,
     fontWeight: FontWeight.w700,
     color: AppColors.priceFinal,
   );
 
-  static const TextStyle priceOld = TextStyle(
+  static TextStyle get priceOld => TextStyle(
     fontFamily: _fontFamily,
-    fontSize: 42,
+    fontSize: _mobile ? 24.sp : 42,
     fontWeight: FontWeight.w600,
-    color: Color(0xFF4B4B60),
+    color: const Color(0xFF4B4B60),
     letterSpacing: -0.5,
   );
 
-  static const TextStyle priceFinal = TextStyle(
+  static TextStyle get priceFinal => TextStyle(
     fontFamily: _fontFamily,
-    fontSize: 68,
+    fontSize: _mobile ? 38.sp : 68,
     fontWeight: FontWeight.w700,
-    color: Color(0xFFC62828),
+    color: const Color(0xFFC62828),
     letterSpacing: -2.0,
   );
 
-  static const TextStyle priceLabel = TextStyle(
+  static TextStyle get priceLabel => TextStyle(
     fontFamily: _fontFamily,
-    fontSize: 18,
+    fontSize: _mobile ? 14.sp : 18,
     fontWeight: FontWeight.w700,
     color: Colors.black,
   );
 
-  static const TextStyle unitLabel = TextStyle(
+  static TextStyle get unitLabel => TextStyle(
     fontFamily: _fontFamily,
-    fontSize: 34,
+    fontSize: _mobile ? 20.sp : 34,
     fontWeight: FontWeight.w600,
     color: AppColors.textSecondary,
   );
 
-  static const TextStyle unitLabelSmall = TextStyle(
+  static TextStyle get unitLabelSmall => TextStyle(
     fontFamily: _fontFamily,
-    fontSize: 18,
+    fontSize: _mobile ? 14.sp : 18,
     fontWeight: FontWeight.w600,
     color: AppColors.textSecondary,
   );
 
   // Discount badge
-  static const TextStyle discountBadgeTitle = TextStyle(
+  static TextStyle get discountBadgeTitle => TextStyle(
     fontFamily: 'Inter',
-    fontSize: 20,
+    fontSize: _mobile ? 14.sp : 20,
     fontWeight: FontWeight.w800,
     color: Colors.white,
   );
 
-  static const TextStyle discountBadgePercent = TextStyle(
+  static TextStyle get discountBadgePercent => TextStyle(
     fontFamily: 'Inter',
-    fontSize: 32,
+    fontSize: _mobile ? 20.sp : 32,
     fontWeight: FontWeight.w700,
-    color: Color(0xFF6D3200),
+    color: const Color(0xFF6D3200),
   );
 
-  static const TextStyle discountPill = TextStyle(
+  static TextStyle get discountPill => TextStyle(
     fontFamily: _fontFamily,
-    fontSize: 38,
+    fontSize: _mobile ? 24.sp : 38,
     fontWeight: FontWeight.w700,
     color: Colors.white,
   );
 
   // Product info
-  static const TextStyle productName = TextStyle(
+  static TextStyle get productName => TextStyle(
     fontFamily: _fontFamily,
-    fontSize: 28, // AppSizes.fontH2
+    fontSize: _mobile ? 22.sp : 28,
     fontWeight: FontWeight.w700,
     color: AppColors.textTitle,
     height: 1.1,
   );
 
-  static const TextStyle productCode = TextStyle(
+  static TextStyle get productCode => TextStyle(
     fontFamily: _fontFamily,
-    fontSize: 20,
+    fontSize: _mobile ? 15.sp : 20,
     fontWeight: FontWeight.w400,
-    color: Color(0xFF6B7280),
+    color: const Color(0xFF6B7280),
   );
 
-  static const TextStyle productFamily = TextStyle(
+  static TextStyle get productFamily => TextStyle(
     fontFamily: _fontFamily,
-    fontSize: 20,
+    fontSize: _mobile ? 15.sp : 20,
     fontWeight: FontWeight.w600,
-    color: Color(0xFF6B7280),
+    color: const Color(0xFF6B7280),
   );
 
   // Search field
-  static const TextStyle searchHint = TextStyle(
+  static TextStyle get searchHint => TextStyle(
     fontFamily: _fontFamily,
-    fontSize: 16, // AppSizes.fontBody
+    fontSize: _mobile ? 15.sp : 16,
     color: AppColors.textSecondary,
   );
 
-  static const TextStyle searchInput = TextStyle(
+  static TextStyle get searchInput => TextStyle(
     fontFamily: _fontFamily,
-    fontSize: 18, // AppSizes.fontBodyLg
+    fontSize: _mobile ? 17.sp : 18,
     color: AppColors.textPrimary,
   );
 
   // Presentations
-  static const TextStyle presentationLabel = TextStyle(
+  static TextStyle get presentationLabel => TextStyle(
     fontFamily: _fontFamily,
-    fontSize: 18,
+    fontSize: _mobile ? 14.sp : 18,
     fontWeight: FontWeight.w600,
     color: AppColors.textPrimary,
   );
 
-  static const TextStyle presentationPriceOld = TextStyle(
+  static TextStyle get presentationPriceOld => TextStyle(
     fontFamily: _fontFamily,
-    fontSize: 14,
+    fontSize: _mobile ? 12.sp : 14,
     fontWeight: FontWeight.w600,
     decoration: TextDecoration.lineThrough,
     color: AppColors.textSecondary,
   );
 
-  static const TextStyle presentationDiscount = TextStyle(
+  static TextStyle get presentationDiscount => TextStyle(
     fontFamily: _fontFamily,
-    fontSize: 12,
+    fontSize: _mobile ? 11.sp : 12,
     fontWeight: FontWeight.bold,
     color: Colors.white,
   );
 
-  static const TextStyle presentationPrice = TextStyle(
+  static TextStyle get presentationPrice => TextStyle(
     fontFamily: _fontFamily,
-    fontSize: 22,
+    fontSize: _mobile ? 17.sp : 22,
     fontWeight: FontWeight.w700,
     color: AppColors.priceFinal,
   );
 
   // Footer
-  static const TextStyle footerText = TextStyle(
+  static TextStyle get footerText => TextStyle(
     fontFamily: _fontFamily,
-    fontSize: 16,
+    fontSize: _mobile ? 13.sp : 16,
     fontWeight: FontWeight.w500,
     color: AppColors.textSecondary,
   );

@@ -18,10 +18,12 @@ class FooterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = AppSizes.isMobile;
+
     return Container(
-      height: 48,
+      height: isMobile ? 36 : 48,
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: AppSizes.paddingBase),
+      padding: EdgeInsets.symmetric(horizontal: AppSizes.paddingBase),
       child: Center(
         child: FittedBox(
           fit: BoxFit.scaleDown,
@@ -33,14 +35,12 @@ class FooterBar extends StatelessWidget {
                 style: AppTextStyles.footerText,
               ),
               GestureDetector(
-                // Long press for touch devices
                 onLongPress: () => _openConfig(context),
-                // Double tap for mouse/trackpad
                 onDoubleTap: () => _openConfig(context),
                 child: Text(
                   'confianza',
                   style: AppTextStyles.custom(
-                    fontSize: 16,
+                    fontSize: isMobile ? AppSizes.fontCaption : 16,
                     fontWeight: FontWeight.w700,
                     color: AppColors.brandPrimary,
                   ),

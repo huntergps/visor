@@ -98,6 +98,24 @@ class VisorProvider extends ChangeNotifier {
     }
 
     try {
+      // Check if server is configured
+      final appConfig = AppConfigService();
+      if (appConfig.host.isEmpty) {
+        _currentProduct = Product(
+          name: 'SERVIDOR NO CONFIGURADO',
+          barcode: query,
+          stock: 0,
+          imageUrl: 'assets/no_imagen.png',
+          regularPrice: 0.0,
+          finalPrice: 0.0,
+        );
+        _searchState = SearchState.error;
+        _errorMessage = 'Configure el host del servidor en ajustes (doble-tap en "confianza")';
+        _viewState = VisorViewState.product;
+        notifyListeners();
+        return;
+      }
+
       final result = await _productService.getProductByBarcode(query);
 
       if (result != null) {

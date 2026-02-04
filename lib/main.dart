@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sizer/sizer.dart';
 
 import 'core/app_colors.dart';
 import 'screens/visor_screen.dart';
@@ -46,22 +47,26 @@ class VisorApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => VisorProvider()..initialize(),
-      child: MaterialApp(
-        title: 'Visor de Precios',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: AppColors.brandPrimary,
-            brightness: Brightness.light,
-            surface: AppColors.surface,
+    return Sizer(
+      builder: (context, orientation, deviceType) {
+        return ChangeNotifierProvider(
+          create: (_) => VisorProvider()..initialize(),
+          child: MaterialApp(
+            title: 'Visor de Precios',
+            debugShowCheckedModeBanner: false,
+            theme: ThemeData(
+              useMaterial3: true,
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: AppColors.brandPrimary,
+                brightness: Brightness.light,
+                surface: AppColors.surface,
+              ),
+              fontFamily: 'OpenSans',
+            ),
+            home: const VisorScreen(),
           ),
-          fontFamily: 'OpenSans',
-        ),
-        home: const VisorScreen(),
-      ),
+        );
+      },
     );
   }
 }

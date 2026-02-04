@@ -24,7 +24,6 @@ class PresentationsCard extends StatelessWidget {
           child: SizedBox(height: 1, width: double.infinity),
         ),
         const SizedBox(height: 10),
-        // Use for loop directly instead of toList + spread
         for (var i = 0; i < presentations.length && i < maxVisible; i++)
           _PresentationItem(presentation: presentations[i]),
       ],
@@ -37,50 +36,53 @@ class _PresentationItem extends StatelessWidget {
 
   const _PresentationItem({required this.presentation});
 
-  // Static decorations
-  static final _itemDecoration = BoxDecoration(
-    color: AppColors.surfaceAlt,
-    borderRadius: BorderRadius.circular(AppSizes.radiusChip),
-    border: Border.all(color: AppColors.divider),
-  );
-
-  static final _thumbnailDecoration = BoxDecoration(
-    color: AppColors.surface,
-    borderRadius: BorderRadius.circular(8),
-  );
-
-  static final _discountDecoration = BoxDecoration(
-    color: Colors.red,
-    borderRadius: BorderRadius.circular(4),
-  );
-
-  static const _placeholderIcon = Icon(
-    Icons.inventory_2_outlined,
-    color: Color(0x80757575), // AppColors.textSecondary with 0.5 alpha
-    size: 24,
-  );
-
   @override
   Widget build(BuildContext context) {
+    final isMobile = AppSizes.isMobile;
+    final thumbW = isMobile ? 48.0 : 64.0;
+    final thumbH = isMobile ? 32.0 : 42.0;
+    final innerPad = isMobile ? 8.0 : 12.0;
+    final iconSize = isMobile ? 20.0 : 24.0;
+
+    final itemDecoration = BoxDecoration(
+      color: AppColors.surfaceAlt,
+      borderRadius: BorderRadius.circular(AppSizes.radiusChip),
+      border: Border.all(color: AppColors.divider),
+    );
+
+    final thumbnailDecoration = BoxDecoration(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(8),
+    );
+
+    final discountDecoration = BoxDecoration(
+      color: Colors.red,
+      borderRadius: BorderRadius.circular(4),
+    );
+
     return Container(
-      padding: const EdgeInsets.all(12),
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: _itemDecoration,
+      padding: EdgeInsets.all(innerPad),
+      margin: EdgeInsets.only(bottom: isMobile ? 6 : 8),
+      decoration: itemDecoration,
       child: Row(
         children: [
           // Thumbnail
           Container(
-            width: 64,
-            height: 42,
-            decoration: _thumbnailDecoration,
+            width: thumbW,
+            height: thumbH,
+            decoration: thumbnailDecoration,
             child: Image.asset(
               PresentationAssets.getAssetForLabel(presentation.label),
               fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) => _placeholderIcon,
+              errorBuilder: (context, error, stackTrace) => Icon(
+                Icons.inventory_2_outlined,
+                color: const Color(0x80757575),
+                size: iconSize,
+              ),
             ),
           ),
 
-          const SizedBox(width: 16),
+          SizedBox(width: isMobile ? 10 : 16),
 
           // Name
           Expanded(
@@ -103,7 +105,7 @@ class _PresentationItem extends StatelessWidget {
                 const SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                  decoration: _discountDecoration,
+                  decoration: discountDecoration,
                   child: Text(
                     '-${presentation.discountPercent.toStringAsFixed(0)}%',
                     style: AppTextStyles.presentationDiscount,
@@ -122,12 +124,12 @@ class _PresentationItem extends StatelessWidget {
               style: AppTextStyles.presentationPrice,
             ),
 
-          const SizedBox(width: 12),
+          SizedBox(width: isMobile ? 8 : 12),
 
-          const Icon(
+          Icon(
             Icons.shopping_cart,
             color: AppColors.brandPrimary,
-            size: 24,
+            size: iconSize,
           ),
         ],
       ),

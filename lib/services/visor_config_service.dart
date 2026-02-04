@@ -33,6 +33,11 @@ class VisorConfigService {
     final host = appConfig.host;
     final apiKey = appConfig.apiKey;
 
+    if (host.isEmpty) {
+      debugPrint('VisorConfigService: Host no configurado. Configure el servidor en ajustes.');
+      return getConfig();
+    }
+
     final url = '$protocol://$host/api/erp_dat/v1/_process/visor_conf';
 
     final response = await HttpClientService().client.get(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/app_sizes.dart';
 import '../../core/app_text_styles.dart';
 
 class PriceRow extends StatelessWidget {
@@ -28,26 +29,26 @@ class PriceRow extends StatelessWidget {
     borderRadius: BorderRadius.circular(8),
     boxShadow: const [
       BoxShadow(
-        color: Color(0x40000000), // 0.25 alpha
+        color: Color(0x40000000),
         blurRadius: 3,
         offset: Offset(1, 1),
       ),
     ],
   );
 
-  // Pre-computed text style with shadows
-  static final _discountPillStyle = AppTextStyles.discountPill.copyWith(
-    shadows: const [
-      Shadow(
-        offset: Offset(1, 1),
-        blurRadius: 2.0,
-        color: Color(0x4D000000), // 0.3 alpha
-      ),
-    ],
-  );
-
   @override
   Widget build(BuildContext context) {
+    final isMobile = AppSizes.isMobile;
+    final discountPillStyle = AppTextStyles.discountPill.copyWith(
+      shadows: const [
+        Shadow(
+          offset: Offset(1, 1),
+          blurRadius: 2.0,
+          color: Color(0x4D000000),
+        ),
+      ],
+    );
+
     if (!hasDiscount) {
       return Row(
         mainAxisSize: MainAxisSize.min,
@@ -66,6 +67,80 @@ class PriceRow extends StatelessWidget {
       );
     }
 
+    // Responsive arrow sizes
+    final arrowW1 = isMobile ? 36.0 : 58.0;
+    final arrowH1 = isMobile ? 26.0 : 42.0;
+    final arrowW2 = isMobile ? 18.0 : 30.0;
+    final arrowH2 = isMobile ? 22.0 : 36.0;
+    final spacing = isMobile ? 8.0 : 14.0;
+    final spacingLg = isMobile ? 10.0 : 16.0;
+
+    if (isMobile) {
+      // Mobile: single row, FittedBox shrinks to fit
+      return FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.centerLeft,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Old price
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Text(
+                      '\$${priceOld.toStringAsFixed(2)}',
+                      style: AppTextStyles.priceOld,
+                    ),
+                    const Positioned(
+                      left: 0,
+                      right: 0,
+                      child: ColoredBox(
+                        color: Color(0xFF4B4B60),
+                        child: SizedBox(height: 2, width: double.infinity),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Text('Antes', style: AppTextStyles.priceLabel),
+              ],
+            ),
+            SizedBox(width: spacing),
+            // Arrow
+            CustomPaint(
+              size: Size(arrowW1, arrowH1),
+              painter: _gradientArrowPainter,
+            ),
+            SizedBox(width: spacing),
+            // Discount pill
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: _discountPillDecoration,
+              child: Text('-$discountPercent%', style: discountPillStyle),
+            ),
+            SizedBox(width: spacingLg),
+            // Arrow
+            CustomPaint(
+              size: Size(arrowW2, arrowH2),
+              painter: _concaveArrowPainter,
+            ),
+            SizedBox(width: spacingLg),
+            // Final price
+            Text(
+              '\$${priceFinal.toStringAsFixed(2)}',
+              style: AppTextStyles.priceFinal,
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Desktop: original single Row
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -96,32 +171,32 @@ class PriceRow extends StatelessWidget {
           ],
         ),
 
-        const SizedBox(width: 14),
+        SizedBox(width: spacing),
 
         // First Arrow: Thick gradient arrow
-        const CustomPaint(
-          size: Size(58, 42),
+        CustomPaint(
+          size: Size(arrowW1, arrowH1),
           painter: _gradientArrowPainter,
         ),
 
-        const SizedBox(width: 14),
+        SizedBox(width: spacing),
 
         // Discount pill
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: _discountPillDecoration,
-          child: Text('-$discountPercent%', style: _discountPillStyle),
+          child: Text('-$discountPercent%', style: discountPillStyle),
         ),
 
-        const SizedBox(width: 16),
+        SizedBox(width: spacingLg),
 
         // Second Arrow: Concave play arrow
-        const CustomPaint(
-          size: Size(30, 36),
+        CustomPaint(
+          size: Size(arrowW2, arrowH2),
           painter: _concaveArrowPainter,
         ),
 
-        const SizedBox(width: 16),
+        SizedBox(width: spacingLg),
 
         // Final price
         Text(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sizer/sizer.dart';
 
 import '../../models/product.dart';
 import '../../core/app_sizes.dart';
@@ -21,26 +22,67 @@ class MainContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = AppSizes.isMobile;
+
     return Padding(
-      padding: const EdgeInsets.symmetric(
+      padding: EdgeInsets.symmetric(
         horizontal: AppSizes.paddingMedium,
         vertical: AppSizes.paddingXSmall,
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Left column: Product Image Card (reduced by ~20%)
-          Expanded(flex: 40, child: ProductCard(product: product, imageLoading: imageLoading)),
+      child: isMobile ? _buildMobileLayout(context) : _buildDesktopLayout(),
+    );
+  }
 
-          const SizedBox(width: AppSizes.paddingMedium),
+  Widget _buildDesktopLayout() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(flex: 40, child: ProductCard(product: product, imageLoading: imageLoading)),
+        SizedBox(width: AppSizes.paddingMedium),
+        Expanded(
+          flex: 60,
+          child: InfoCard(product: product, onSearch: onSearch, onClear: onClear),
+        ),
+      ],
+    );
+  }
 
-          // Right column: Info Card
-          Expanded(
-            flex: 60,
-            child: InfoCard(product: product, onSearch: onSearch, onClear: onClear),
+  Widget _buildMobileLayout(BuildContext context) {
+    final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+
+    return Column(
+      children: [
+        // Search bar always on top (fixed)
+        ProductSearchBar(
+          onSearch: onSearch,
+          onClear: onClear,
+          currentBarcode: product.barcode,
+        ),
+        SizedBox(height: AppSizes.paddingXSmall),
+        // Scrollable content: info + image
+        Expanded(
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: EdgeInsets.only(bottom: keyboardHeight),
+            child: Column(
+              children: [
+                InfoCard(
+                  product: product,
+                  onSearch: onSearch,
+                  onClear: onClear,
+                  showSearchBar: false,
+                  useExpanded: false,
+                ),
+                SizedBox(height: AppSizes.paddingXSmall),
+                SizedBox(
+                  height: 40.h,
+                  child: ProductCard(product: product, imageLoading: imageLoading),
+                ),
+              ],
+            ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
