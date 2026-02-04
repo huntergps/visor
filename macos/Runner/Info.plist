@@ -28,6 +28,8 @@
 	<string>Se necesita la cámara para tomar fotos de productos</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Para seleccionar fotos de productos desde la galería</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
