@@ -50,7 +50,7 @@ class VisorScreen extends StatelessWidget {
                   child: provider.viewState == VisorViewState.ads
                       ? AdsView(key: const ValueKey('ads'))
                       : ProductView(
-                          key: ValueKey('product_${provider.currentProduct.barcode}'),
+                          key: const ValueKey('product'),
                           product: provider.currentProduct,
                           imageLoading: provider.imageLoading,
                           onSearch: (query) => provider.searchProduct(query),

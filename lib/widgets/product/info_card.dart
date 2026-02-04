@@ -98,6 +98,7 @@ class _InfoCardState extends State<InfoCard> {
                 child: TextField(
                   controller: _searchController,
                   focusNode: _focusNode,
+                  autofocus: true,
                   textCapitalization: TextCapitalization.characters,
                   onSubmitted: (_) => _submitSearch(),
                   decoration: InputDecoration(

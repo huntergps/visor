@@ -16,6 +16,9 @@ class ImageCacheService {
 
   String? _cacheDir;
 
+  /// Public accessor for cache directory path
+  String? get cacheDir => _cacheDir;
+
   // Cache configuration
   static const int _maxCacheFiles = 50;
   static const Duration _cacheTTL = Duration(hours: 24);
@@ -205,6 +208,23 @@ class ImageCacheService {
     if (await cacheFolder.exists()) {
       await cacheFolder.delete(recursive: true);
       await cacheFolder.create(recursive: true);
+    }
+  }
+
+  /// Clear only product images (files starting with given prefix)
+  Future<void> clearProductCache({String prefix = 'product_'}) async {
+    if (_cacheDir == null) return;
+
+    final cacheFolder = Directory(_cacheDir!);
+    if (!await cacheFolder.exists()) return;
+
+    await for (final entity in cacheFolder.list()) {
+      if (entity is File) {
+        final name = entity.uri.pathSegments.last;
+        if (name.startsWith(prefix)) {
+          await entity.delete();
+        }
+      }
     }
   }
 

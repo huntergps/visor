@@ -167,9 +167,20 @@ class VisorProvider extends ChangeNotifier {
     }
   }
 
-  /// Switch to ads view
+  /// Switch to ads view and reset product state
   void showAdsView() {
     if (_isDisposed) return;
+    _currentProduct = Product(
+      name: 'BIENVENIDO',
+      barcode: '',
+      stock: 0,
+      regularPrice: 0.0,
+      finalPrice: 0.0,
+      imageUrl: 'assets/no_imagen.png',
+    );
+    _searchState = SearchState.idle;
+    _imageLoading = false;
+    _errorMessage = null;
     _viewState = VisorViewState.ads;
     notifyListeners();
   }

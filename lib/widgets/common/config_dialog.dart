@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import '../../services/app_config_service.dart';
 import '../../services/image_cache_service.dart';
@@ -100,6 +102,31 @@ class _ConfigDialogState extends State<ConfigDialog> {
               ),
               keyboardType: TextInputType.number,
             ),
+            const SizedBox(height: 16),
+            const Divider(),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    ImageCacheService().cacheDir ?? 'No inicializado',
+                    style: const TextStyle(fontSize: 11, color: Colors.grey),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: const Icon(Icons.folder_open, size: 20),
+                  tooltip: 'Abrir carpeta de cache',
+                  onPressed: () {
+                    final path = ImageCacheService().cacheDir;
+                    if (path != null) {
+                      Process.run('open', [path]);
+                    }
+                  },
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -149,8 +176,7 @@ class _ConfigDialogState extends State<ConfigDialog> {
         TextButton(
           onPressed: () async {
             final sm = ScaffoldMessenger.of(context);
-            await ImageCacheService().clearCache();
-            VisorConfigService().clearCache();
+            await ImageCacheService().clearProductCache();
             sm.showSnackBar(
               const SnackBar(
                 content: Text('Cache de imágenes limpiado'),
