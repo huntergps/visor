@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 
 import '../models/product.dart';
 import '../services/app_config_service.dart';
+import '../services/image_cache_service.dart';
 import '../services/product_service.dart';
 import '../services/visor_config_service.dart';
 
@@ -160,6 +163,33 @@ class VisorProvider extends ChangeNotifier {
     }
   }
 
+  /// Refresh the product image after upload.
+  /// Invalidates cache and re-fetches from server to get the updated image.
+  Future<void> refreshProductImage(String barcode) async {
+    if (barcode.isEmpty || _currentProduct.barcode != barcode) return;
+
+    final cacheKey = 'product_$barcode';
+
+    // Invalidate cached version so it re-fetches from server
+    await ImageCacheService().clearByKey(cacheKey);
+
+    // Re-fetch product to get the new image from server
+    final result = await ProductService().getProductByBarcode(barcode);
+    if (result != null && !_isDisposed) {
+      _currentProduct = result.product;
+      notifyListeners();
+
+      // Wait for background image to load
+      if (result.pendingImage != null) {
+        final imageSource = await result.pendingImage;
+        if (imageSource != null && !_isDisposed) {
+          _currentProduct = _currentProduct.copyWithImageUrl(imageSource);
+          notifyListeners();
+        }
+      }
+    }
+  }
+
   /// Reset product to welcome state
   void resetProduct() {
     _currentProduct = Product(
@@ -201,6 +231,18 @@ class VisorProvider extends ChangeNotifier {
     _errorMessage = null;
     _viewState = VisorViewState.ads;
     notifyListeners();
+  }
+
+  /// Pause the idle timer (e.g., during image editing).
+  /// Call resumeIdleTimer() to restart it.
+  void pauseIdleTimer() {
+    _idleTimer?.cancel();
+    _idleTimer = null;
+  }
+
+  /// Resume/reset the idle timer after it was paused.
+  void resumeIdleTimer() {
+    _resetIdleTimer();
   }
 
   /// Reset the idle timer using cached timeout value

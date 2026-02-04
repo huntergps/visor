@@ -3,6 +3,8 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  file_selector_linux
+  flutter_onnxruntime
   screen_retriever_linux
   window_manager
 )

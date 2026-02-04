@@ -11,6 +11,7 @@ class MainContent extends StatelessWidget {
   final bool imageLoading;
   final Function(String) onSearch;
   final VoidCallback? onClear;
+  final VoidCallback? onTakePhoto;
 
   const MainContent({
     super.key,
@@ -18,6 +19,7 @@ class MainContent extends StatelessWidget {
     this.imageLoading = false,
     required this.onSearch,
     this.onClear,
+    this.onTakePhoto,
   });
 
   @override
@@ -37,7 +39,7 @@ class MainContent extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Expanded(flex: 40, child: ProductCard(product: product, imageLoading: imageLoading)),
+        Expanded(flex: 40, child: ProductCard(product: product, imageLoading: imageLoading, onTakePhoto: onTakePhoto)),
         SizedBox(width: AppSizes.paddingMedium),
         Expanded(
           flex: 60,
@@ -76,7 +78,7 @@ class MainContent extends StatelessWidget {
                 SizedBox(height: AppSizes.paddingXSmall),
                 SizedBox(
                   height: 40.h,
-                  child: ProductCard(product: product, imageLoading: imageLoading),
+                  child: ProductCard(product: product, imageLoading: imageLoading, onTakePhoto: onTakePhoto),
                 ),
               ],
             ),

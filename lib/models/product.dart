@@ -2,6 +2,7 @@ import 'discount.dart';
 import 'presentation_price.dart';
 
 class Product {
+  final int? id;
   final String name;
   final String barcode;
   final String family;
@@ -19,6 +20,7 @@ class Product {
   final Discount? _cachedBestDiscount;
 
   Product({
+    this.id,
     required this.name,
     required this.barcode,
     this.family = '',
@@ -45,6 +47,7 @@ class Product {
   /// Create a copy with a different imageUrl
   Product copyWithImageUrl(String? imageUrl) {
     return Product(
+      id: id,
       name: name,
       barcode: barcode,
       family: family,

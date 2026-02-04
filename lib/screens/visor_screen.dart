@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
+import '../services/image_upload_service.dart';
 import '../views/ads_view.dart';
 import '../views/product_view.dart';
 
@@ -55,6 +57,44 @@ class VisorScreen extends StatelessWidget {
     );
   }
 
+  Future<void> _handleTakePhoto(
+    BuildContext context,
+    VisorProvider provider,
+  ) async {
+    final product = provider.currentProduct;
+    if (product.barcode.isEmpty) return;
+
+    if (product.id == null) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No se pudo obtener el ID del producto'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+
+    final productId = product.id.toString();
+
+    // Pause idle timer during image editing to prevent ads from showing
+    provider.pauseIdleTimer();
+
+    try {
+      final success = await ImageUploadService().captureAndProcess(
+        context,
+        productId,
+      );
+      if (success) {
+        await provider.refreshProductImage(product.barcode);
+      }
+    } finally {
+      // Resume idle timer after editing (whether success or cancel)
+      provider.resumeIdleTimer();
+    }
+  }
+
   Widget _buildContent() {
     return Consumer<VisorProvider>(
       builder: (context, provider, child) {
@@ -72,6 +112,9 @@ class VisorScreen extends StatelessWidget {
                     imageLoading: provider.imageLoading,
                     onSearch: (query) => provider.searchProduct(query),
                     onClear: () => provider.resetProduct(),
+                    onTakePhoto: provider.currentProduct.barcode.isNotEmpty
+                        ? () => _handleTakePhoto(context, provider)
+                        : null,
                   ),
           ),
         );

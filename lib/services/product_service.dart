@@ -103,6 +103,7 @@ class ProductService {
           );
 
           final product = Product(
+            id: data['id'] is num ? (data['id'] as num).toInt() : null,
             name: data['name'] ?? 'Desconocido',
             barcode: data['codigo'] ?? '',
             family: data['familia'] ?? '',
@@ -142,7 +143,7 @@ class ProductService {
       if (imageStillValid) {
         return 'cached:$imageKey';
       }
-      debugPrint('ProductService: Image version changed for $barcode, re-fetching');
+      // Image version changed, re-fetch
     }
 
     // Need to fetch image — second request with dar_imagen=1
@@ -191,7 +192,6 @@ class ProductService {
           if (imageVersion != null && imageVersion.isNotEmpty) {
             await _imageCache.saveVersion(imageKey, imageVersion);
           }
-          debugPrint('ProductService: Cached image from URL');
           return 'cached:$imageKey';
         }
         return imageUrl;
@@ -202,7 +202,6 @@ class ProductService {
           if (imageVersion != null && imageVersion.isNotEmpty) {
             await _imageCache.saveVersion(imageKey, imageVersion);
           }
-          debugPrint('ProductService: Cached image from Base64');
           return 'cached:$imageKey';
         }
       }

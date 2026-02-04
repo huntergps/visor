@@ -211,6 +211,22 @@ class ImageCacheService {
     }
   }
 
+  /// Delete a specific cached file by key
+  Future<void> clearByKey(String key) async {
+    if (_cacheDir == null) await init();
+    if (key.isEmpty) return;
+
+    final file = File('$_cacheDir/$key');
+    if (await file.exists()) {
+      await file.delete();
+    }
+    // Also remove metadata file if present
+    final metaFile = File('$_cacheDir/$key.meta');
+    if (await metaFile.exists()) {
+      await metaFile.delete();
+    }
+  }
+
   /// Clear only product images (files starting with given prefix)
   Future<void> clearProductCache({String prefix = 'product_'}) async {
     if (_cacheDir == null) return;

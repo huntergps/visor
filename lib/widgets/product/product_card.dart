@@ -9,11 +9,13 @@ import 'discount_badge.dart';
 class ProductCard extends StatelessWidget {
   final Product product;
   final bool imageLoading;
+  final VoidCallback? onTakePhoto;
 
   const ProductCard({
     super.key,
     required this.product,
     this.imageLoading = false,
+    this.onTakePhoto,
   });
 
   @override
@@ -48,6 +50,20 @@ class ProductCard extends StatelessWidget {
               top: AppSizes.paddingBase,
               right: AppSizes.paddingBase,
               child: DiscountBadge(percent: discount.percent.toInt()),
+            ),
+
+          // Camera button (bottom-left) — only when a real product is loaded
+          if (onTakePhoto != null && product.barcode.isNotEmpty)
+            Positioned(
+              bottom: AppSizes.paddingBase,
+              left: AppSizes.paddingBase,
+              child: FloatingActionButton(
+                mini: true,
+                backgroundColor: AppColors.brandPrimary,
+                onPressed: onTakePhoto,
+                tooltip: 'Editar/Capturar imagen',
+                child: const Icon(Icons.photo_camera, color: Colors.white, size: 20),
+              ),
             ),
         ],
       ),

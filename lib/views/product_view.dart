@@ -138,6 +138,7 @@ class ProductView extends StatelessWidget {
   final bool imageLoading;
   final Function(String) onSearch;
   final VoidCallback? onClear;
+  final VoidCallback? onTakePhoto;
 
   const ProductView({
     super.key,
@@ -145,6 +146,7 @@ class ProductView extends StatelessWidget {
     this.imageLoading = false,
     required this.onSearch,
     this.onClear,
+    this.onTakePhoto,
   });
 
   @override
@@ -164,6 +166,7 @@ class ProductView extends StatelessWidget {
                     imageLoading: imageLoading,
                     onSearch: onSearch,
                     onClear: onClear,
+                    onTakePhoto: onTakePhoto,
                   ),
                 ),
                 const FooterBar(),
