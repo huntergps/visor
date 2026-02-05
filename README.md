@@ -41,7 +41,7 @@ Aplicación multiplataforma para visualización de productos con búsqueda, esca
 ## Requisitos
 
 ### Para usuarios
-- **Windows**: Windows 10 o superior (x64)
+- **Windows**: Windows 10 o superior (x64) - Incluye VC++ Runtime, no requiere instalación adicional
 - **macOS**: macOS 10.14 o superior
 - **Linux**: Ubuntu 18.04 o superior
 - **Android**: Android 5.0 (API 21) o superior
