@@ -97,6 +97,30 @@ flutter build apk --release
 flutter build ios --release
 ```
 
+## Publicar Release
+
+Scripts automatizados para compilar y publicar en GitHub:
+
+### Usando Git Bash
+```bash
+./scripts/release.sh           # Usa versión del pubspec.yaml
+./scripts/release.sh 1.0.1     # Especifica versión
+```
+
+### Usando PowerShell
+```powershell
+.\scripts\release.ps1                    # Usa versión del pubspec.yaml
+.\scripts\release.ps1 -Version "1.0.1"   # Especifica versión
+```
+
+Los scripts automáticamente:
+1. Obtienen los últimos cambios (git pull)
+2. Instalan dependencias
+3. Compilan para Windows
+4. Incluyen las DLLs de VC++ Runtime
+5. Crean el archivo ZIP
+6. Publican en GitHub Releases
+
 ## Licencia
 
 Este proyecto es software propietario. Todos los derechos reservados.
