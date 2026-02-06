@@ -126,7 +126,7 @@ class _DraggableFloatingScannerState extends State<_DraggableFloatingScanner> {
           heroTag: 'scanner_fab',
           backgroundColor: AppColors.brandPrimary,
           onPressed: null,
-          child: const Icon(Icons.camera_alt, color: Colors.white),
+          child: const Icon(Icons.qr_code_scanner, color: Colors.white),
         ),
       ),
     );

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 
-import '../core/app_colors.dart';
+import '../models/visor_config.dart';
 import '../services/visor_config_service.dart';
 import '../services/app_config_service.dart';
 import '../widgets/common/cached_image.dart';
@@ -19,6 +19,7 @@ class _AdsViewState extends State<AdsView> with WidgetsBindingObserver {
   List<String> _images = [];
   int _adsDuration = 5;
   Timer? _autoSlideTimer;
+  final Set<String> _failedImages = {};
 
   @override
   void initState() {
@@ -37,14 +38,32 @@ class _AdsViewState extends State<AdsView> with WidgetsBindingObserver {
 
     if (mounted) {
       setState(() {
-        _images = newImages;
-        // Reset current page if out of bounds
+        _images = List.from(newImages);
         if (_currentPage >= _images.length) {
           _currentPage = 0;
         }
       });
       _startAutoSlide();
     }
+  }
+
+  void _onImageFailed(String source) {
+    if (!mounted || _failedImages.contains(source)) return;
+    _failedImages.add(source);
+
+    setState(() {
+      _images.removeWhere((img) => _failedImages.contains(img));
+      if (_images.isEmpty) {
+        _images = List.from(VisorConfig.defaultImages);
+        _failedImages.clear();
+      }
+      _currentPage = _currentPage.clamp(0, _images.length - 1);
+    });
+
+    if (_pageController.hasClients && _images.isNotEmpty) {
+      _pageController.jumpToPage(_currentPage);
+    }
+    _startAutoSlide();
   }
 
   void _startAutoSlide() {
@@ -54,7 +73,6 @@ class _AdsViewState extends State<AdsView> with WidgetsBindingObserver {
     _autoSlideTimer = Timer.periodic(Duration(seconds: _adsDuration), (_) {
       if (!mounted || _images.isEmpty) return;
 
-      // Ensure currentPage is within bounds before calculating next
       final safeCurrent = _currentPage.clamp(0, _images.length - 1);
       final nextPage = (safeCurrent + 1) % _images.length;
 
@@ -75,7 +93,6 @@ class _AdsViewState extends State<AdsView> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Pause timer when app is backgrounded
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
       _stopAutoSlide();
@@ -112,26 +129,16 @@ class _AdsViewState extends State<AdsView> with WidgetsBindingObserver {
           fit: BoxFit.cover,
           width: double.infinity,
           height: double.infinity,
-          errorBuilder: _errorBuilder,
+          errorBuilder: (context, error, stackTrace) {
+            // Schedule removal of failed image for next frame
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _onImageFailed(imagePath);
+            });
+            // Show blank while transitioning
+            return Container(color: Colors.white);
+          },
         );
       },
-    );
-  }
-
-  Widget _errorBuilder(
-    BuildContext context,
-    Object error,
-    StackTrace? stackTrace,
-  ) {
-    return Container(
-      color: AppColors.brandPrimary,
-      child: const Center(
-        child: Icon(
-          Icons.image_not_supported_outlined,
-          size: 100,
-          color: Colors.white,
-        ),
-      ),
     );
   }
 }

@@ -12,6 +12,7 @@ import 'services/image_cache_service.dart';
 
 import 'dart:io';
 import 'package:window_manager/window_manager.dart';
+import 'package:flutter_acrylic/flutter_acrylic.dart' as flutter_acrylic;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,14 +27,21 @@ void main() async {
   });
 
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    if (Platform.isWindows) {
+      await flutter_acrylic.Window.initialize();
+      await flutter_acrylic.Window.hideWindowControls();
+    }
+
     await windowManager.ensureInitialized();
-    WindowOptions windowOptions = const WindowOptions(
-      size: Size(1366, 768),
-      minimumSize: Size(1366, 768),
-      center: true,
-      title: 'Visor de Precios',
+
+    await windowManager.setTitleBarStyle(
+      TitleBarStyle.hidden,
+      windowButtonVisibility: false,
     );
-    windowManager.waitUntilReadyToShow(windowOptions, () async {
+    await windowManager.setMinimumSize(const Size(800, 600));
+
+    windowManager.waitUntilReadyToShow(null, () async {
+      await windowManager.maximize();
       await windowManager.show();
       await windowManager.focus();
     });

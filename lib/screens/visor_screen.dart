@@ -1,5 +1,5 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
@@ -8,10 +8,17 @@ import '../views/ads_view.dart';
 import '../views/product_view.dart';
 
 import '../providers/visor_provider.dart';
+import '../widgets/common/window_title_bar.dart';
+import '../widgets/lava_lamp_background.dart';
 
-class VisorScreen extends StatelessWidget {
+class VisorScreen extends StatefulWidget {
   const VisorScreen({super.key});
 
+  @override
+  State<VisorScreen> createState() => _VisorScreenState();
+}
+
+class _VisorScreenState extends State<VisorScreen> {
   // Fixed dimensions for desktop container
   static const double _containerWidth = 1366;
   static const double _containerHeight = 768;
@@ -32,27 +39,101 @@ class VisorScreen extends StatelessWidget {
     ],
   );
 
+  // Desktop keyboard capture for barcode scanner during ads
+  final FocusNode _screenFocusNode = FocusNode();
+  String _keyboardBuffer = '';
+  VisorViewState? _lastViewState;
+
+  @override
+  void dispose() {
+    _screenFocusNode.dispose();
+    super.dispose();
+  }
+
+  KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent) return KeyEventResult.ignored;
+
+    final provider = context.read<VisorProvider>();
+    final isAds = provider.viewState == VisorViewState.ads;
+
+    // Only intercept during ads or while completing a buffered barcode scan
+    if (!isAds && _keyboardBuffer.isEmpty) {
+      return KeyEventResult.ignored;
+    }
+
+    final key = event.logicalKey;
+
+    if (key == LogicalKeyboardKey.enter ||
+        key == LogicalKeyboardKey.numpadEnter) {
+      if (_keyboardBuffer.isNotEmpty) {
+        final query = _keyboardBuffer.toUpperCase();
+        _keyboardBuffer = '';
+        provider.searchProduct(query);
+      } else if (isAds) {
+        provider.showProductView();
+      }
+      return KeyEventResult.handled;
+    }
+
+    final char = event.character;
+    if (char != null && char.isNotEmpty && char.codeUnitAt(0) >= 32) {
+      _keyboardBuffer += char;
+      if (isAds) provider.showProductView();
+      return KeyEventResult.handled;
+    }
+
+    // Any other key during ads (arrows, function keys, etc.)
+    if (isAds) {
+      provider.showProductView();
+      return KeyEventResult.handled;
+    }
+
+    return KeyEventResult.ignored;
+  }
+
   @override
   Widget build(BuildContext context) {
     final isMobile = Device.screenType == ScreenType.mobile;
 
+    if (isMobile) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        resizeToAvoidBottomInset: false,
+        body: SizedBox(
+          width: 100.w,
+          height: 100.h,
+          child: _buildContent(),
+        ),
+      );
+    }
+
     return Scaffold(
-      backgroundColor: isMobile ? Colors.white : const Color(0xFF2D2D2D),
       resizeToAvoidBottomInset: false,
-      body: Center(
-        child: isMobile
-            ? SizedBox(
-                width: 100.w,
-                height: 100.h,
-                child: _buildContent(),
-              )
-            : Container(
-                width: _containerWidth,
-                height: _containerHeight,
-                decoration: _containerDecoration,
-                clipBehavior: Clip.antiAlias,
-                child: _buildContent(),
+      body: Focus(
+        focusNode: _screenFocusNode,
+        autofocus: true,
+        onKeyEvent: _handleKeyEvent,
+        child: LavaLampBackground(
+          child: Stack(
+            children: [
+              Center(
+                child: Container(
+                  width: _containerWidth,
+                  height: _containerHeight,
+                  decoration: _containerDecoration,
+                  clipBehavior: Clip.antiAlias,
+                  child: _buildContent(),
+                ),
               ),
+              const Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: WindowTitleBar(),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -98,6 +179,23 @@ class VisorScreen extends StatelessWidget {
   Widget _buildContent() {
     return Consumer<VisorProvider>(
       builder: (context, provider, child) {
+        // Re-capture keyboard focus when ads start showing (desktop only)
+        final isMobile = Device.screenType == ScreenType.mobile;
+        if (!isMobile) {
+          if (provider.viewState == VisorViewState.ads &&
+              _lastViewState != VisorViewState.ads) {
+            _keyboardBuffer = '';
+          }
+          _lastViewState = provider.viewState;
+          if (provider.viewState == VisorViewState.ads) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted && !_screenFocusNode.hasFocus) {
+                _screenFocusNode.requestFocus();
+              }
+            });
+          }
+        }
+
         return GestureDetector(
           onTap: () => provider.showProductView(),
           child: AnimatedSwitcher(
@@ -112,7 +210,8 @@ class VisorScreen extends StatelessWidget {
                     imageLoading: provider.imageLoading,
                     onSearch: (query) => provider.searchProduct(query),
                     onClear: () => provider.resetProduct(),
-                    onTakePhoto: provider.currentProduct.barcode.isNotEmpty
+                    onTakePhoto: provider.isEditor &&
+                            provider.currentProduct.barcode.isNotEmpty
                         ? () => _handleTakePhoto(context, provider)
                         : null,
                   ),

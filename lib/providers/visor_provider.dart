@@ -3,8 +3,10 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 
+import '../models/auth_user.dart';
 import '../models/product.dart';
 import '../services/app_config_service.dart';
+import '../services/auth_service.dart';
 import '../services/image_cache_service.dart';
 import '../services/product_service.dart';
 import '../services/visor_config_service.dart';
@@ -57,6 +59,11 @@ class VisorProvider extends ChangeNotifier {
   // Image loading state
   bool _imageLoading = false;
   bool get imageLoading => _imageLoading;
+
+  // Auth state
+  AuthUser? _authUser;
+  AuthUser? get authUser => _authUser;
+  bool get isEditor => _authUser?.editorVisor ?? false;
 
   // Idle timer
   Timer? _idleTimer;
@@ -254,6 +261,20 @@ class VisorProvider extends ChangeNotifier {
         showAdsView();
       }
     });
+  }
+
+  /// Authenticate user
+  Future<AuthUser> login(String username, String pin) async {
+    final user = await AuthService().login(username, pin);
+    _authUser = user;
+    notifyListeners();
+    return user;
+  }
+
+  /// Log out current user
+  void logout() {
+    _authUser = null;
+    notifyListeners();
   }
 
   @override

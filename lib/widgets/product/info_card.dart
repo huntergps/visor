@@ -149,7 +149,7 @@ class ProductSearchBarState extends State<ProductSearchBar> {
           if (isMobile &&
               AppConfigService().scannerStyle == 'inline')
             IconButton(
-              icon: Icon(Icons.camera_alt, color: AppColors.brandPrimary, size: iconSize),
+              icon: Icon(Icons.qr_code_scanner, color: AppColors.brandPrimary, size: iconSize),
               onPressed: _openScanner,
             ),
           IconButton(

@@ -33,7 +33,7 @@ class VisorConfig {
       }
     } else {
       // Legacy format: img1, img2, img3...
-      for (int i = 1; i <= 10; i++) {
+      for (int i = 1; i <= 12; i++) {
         final imgKey = 'img$i';
         if (json.containsKey(imgKey)) {
           final img = json[imgKey] as String?;
