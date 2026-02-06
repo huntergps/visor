@@ -20,7 +20,7 @@ class _LavaLampBackgroundState extends State<LavaLampBackground>
   // Static blob data - colors pre-computed with alpha
   static final List<BlobData> _blobs = [
     BlobData(
-      color: const Color(0x99D6002F), // brandPrimary with 0.6 alpha
+      color: const Color(0x99D65B5B), // Stronger red with 0.6 alpha
       baseX: 0.25,
       baseY: 0.35,
       radiusX: 0.38,
@@ -29,7 +29,7 @@ class _LavaLampBackgroundState extends State<LavaLampBackground>
       phase: 0,
     ),
     BlobData(
-      color: const Color(0x80B71C1C), // Red 900 with 0.5 alpha
+      color: const Color(0x80E04545), // Red closer to brand with 0.5 alpha
       baseX: 0.7,
       baseY: 0.25,
       radiusX: 0.32,
@@ -38,7 +38,7 @@ class _LavaLampBackgroundState extends State<LavaLampBackground>
       phase: pi / 2,
     ),
     BlobData(
-      color: const Color(0x80FF1744), // Red Accent 400 with 0.5 alpha
+      color: const Color(0x80F5B0B0), // Light warm red with 0.5 alpha
       baseX: 0.5,
       baseY: 0.72,
       radiusX: 0.42,
