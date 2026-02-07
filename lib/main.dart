@@ -20,12 +20,6 @@ void main() async {
   await VisorConfigService().init();
   await ImageCacheService().init();
 
-  // Try to fetch latest config on startup, but don't block if it fails
-  VisorConfigService().fetchAndSaveConfig().catchError((e) {
-    debugPrint('Failed to fetch initial config: $e');
-    return VisorConfigService().getConfig();
-  });
-
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     if (Platform.isWindows) {
       await flutter_acrylic.Window.initialize();

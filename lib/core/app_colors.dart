@@ -38,13 +38,20 @@ class AppColors {
   static const Color stockText = Color(0xFF166534);
 
   // Lava Lamp Background - Soft red theme (10% more red)
-  static const Color lavaGradientStart = Color(0xFFFFE2E2); // Light red (warmer)
+  static const Color lavaGradientStart = Color(
+    0xFFFFE2E2,
+  ); // Light red (warmer)
   static const Color lavaGradientMiddle = Color(0xFFFBB8B8); // Red tinted
   static const Color lavaGradientEnd = Color(0xFFD88A8A); // Medium red
 
   static const Color lavaBlob1 = Color(0xFFD65B5B); // Stronger red
   static const Color lavaBlob2 = Color(0xFFE04545); // Red closer to brand
-  static const Color lavaBlob3 = Color(0xFFF5B0B0); // Light warm red
+  static const Color lavaBlob3 = Color.fromARGB(
+    255,
+    220,
+    15,
+    15,
+  ); // Light warm red
   static const Color lavaBlob4 = Color(0xFFD32F2F); // Red 700
   static const Color lavaBlob5 = Color(0xFFE53935); // Red 600
 }

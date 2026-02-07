@@ -39,12 +39,7 @@ class _LogoFallback extends StatelessWidget {
   static final _decoration = BoxDecoration(
     color: Colors.white,
     borderRadius: BorderRadius.circular(16),
-    boxShadow: const [
-      BoxShadow(
-        color: Color(0x1A000000),
-        blurRadius: 10,
-      ),
-    ],
+    boxShadow: const [BoxShadow(color: Color(0x1A000000), blurRadius: 10)],
   );
 
   @override
@@ -173,8 +168,7 @@ class ProductView extends StatelessWidget {
               ],
             ),
             if (!isMobile) const _FloatingLogo(),
-            if (isMobile &&
-                AppConfigService().scannerStyle == 'floating')
+            if (isMobile && AppConfigService().scannerStyle == 'floating')
               _DraggableFloatingScanner(onSearch: onSearch),
           ],
         ),

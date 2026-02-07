@@ -13,8 +13,8 @@ void main() {
       provider.dispose();
     });
 
-    test('initial state is product view with welcome message', () {
-      expect(provider.viewState, VisorViewState.product);
+    test('initial state is loading view with welcome message', () {
+      expect(provider.viewState, VisorViewState.loading);
       expect(provider.currentProduct.name, 'BIENVENIDO');
       expect(provider.currentProduct.barcode, '');
       expect(provider.searchState, SearchState.idle);
@@ -32,9 +32,10 @@ void main() {
 
   group('VisorViewState', () {
     test('has correct values', () {
-      expect(VisorViewState.values.length, 2);
-      expect(VisorViewState.product.index, 0);
-      expect(VisorViewState.ads.index, 1);
+      expect(VisorViewState.values.length, 3);
+      expect(VisorViewState.loading.index, 0);
+      expect(VisorViewState.product.index, 1);
+      expect(VisorViewState.ads.index, 2);
     });
   });
 

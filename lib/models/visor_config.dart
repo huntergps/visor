@@ -4,6 +4,7 @@ class VisorConfig {
   final int tiempoEspera;
   final int tiempoAds;
   final List<String> _imageList;
+  final int totalSlotCount; // Total slots found in server JSON (empty or not)
 
   // Default fallback images
   static const List<String> defaultImages = [
@@ -18,15 +19,19 @@ class VisorConfig {
     required this.tiempoEspera,
     required this.tiempoAds,
     List<String>? imageList,
+    this.totalSlotCount = 0,
   }) : _imageList = imageList ?? [];
 
   factory VisorConfig.fromJson(Map<String, dynamic> json) {
     // Extract images from img1, img2, img3, etc. (backward compatible)
     final imageList = <String>[];
+    int totalSlots = 0;
 
     // Support both numbered fields (img1, img2, img3...) and array
     if (json['images'] is List) {
-      for (final img in json['images'] as List) {
+      final list = json['images'] as List;
+      totalSlots = list.length;
+      for (final img in list) {
         if (img is String && img.isNotEmpty) {
           imageList.add(img);
         }
@@ -36,6 +41,7 @@ class VisorConfig {
       for (int i = 1; i <= 12; i++) {
         final imgKey = 'img$i';
         if (json.containsKey(imgKey)) {
+          totalSlots = i; // Track highest slot found
           final img = json[imgKey] as String?;
           if (img != null && img.isNotEmpty) {
             imageList.add(img);
@@ -50,6 +56,7 @@ class VisorConfig {
       tiempoEspera: json['tiempo_espera'] ?? 60,
       tiempoAds: json['tiempo_ads'] ?? 5,
       imageList: imageList,
+      totalSlotCount: totalSlots,
     );
   }
 
@@ -105,6 +112,7 @@ class VisorConfig {
       tiempoEspera: tiempoEspera,
       tiempoAds: tiempoAds,
       imageList: cachedPaths,
+      totalSlotCount: totalSlotCount,
     );
   }
 }

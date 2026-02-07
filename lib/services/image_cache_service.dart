@@ -265,9 +265,11 @@ class ImageCacheService {
     }
 
     final cached = await Future.wait(futures);
-    for (final result in cached) {
-      if (result != null) {
-        results.add(result);
+    for (int i = 0; i < cached.length; i++) {
+      if (cached[i] != null) {
+        results.add(cached[i]!);
+      } else {
+        debugPrint('ImageCacheService: Failed to cache image ${i + 1}');
       }
     }
 

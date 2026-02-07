@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import '../../models/visor_config.dart';
 import '../../services/app_config_service.dart';
 import '../../services/image_cache_service.dart';
 import '../../services/visor_config_service.dart';
@@ -20,6 +21,10 @@ class _ConfigDialogState extends State<ConfigDialog> {
 
   String _selectedProtocol = 'http';
   String _scannerStyle = 'floating';
+
+  // Download progress state
+  bool _isFetching = false;
+  String _fetchStatus = '';
 
   // Static dropdown items - created once
   static const _protocolItems = [
@@ -124,6 +129,18 @@ class _ConfigDialogState extends State<ConfigDialog> {
             const SizedBox(height: 8),
             const Divider(),
             const SizedBox(height: 8),
+            // Download progress indicator
+            if (_isFetching) ...[
+              LinearProgressIndicator(
+                borderRadius: BorderRadius.circular(4),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                _fetchStatus,
+                style: const TextStyle(fontSize: 12, color: Colors.blue),
+              ),
+              const SizedBox(height: 8),
+            ],
             Row(
               children: [
                 Expanded(
@@ -151,46 +168,91 @@ class _ConfigDialogState extends State<ConfigDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: () async {
-            // Test connection / Manual Fetch
-            try {
-              final sm = ScaffoldMessenger.of(context);
+          onPressed: _isFetching
+              ? null
+              : () async {
+                  // Manual Fetch by groups
+                  try {
+                    final sm = ScaffoldMessenger.of(context);
 
-              // 1. Save current form values first so the request uses them
-              final service = AppConfigService();
-              await service.setProtocol(_selectedProtocol);
-              await service.setHost(_hostController.text);
-              await service.setApiKey(_apiKeyController.text);
+                    setState(() {
+                      _isFetching = true;
+                      _fetchStatus = 'Conectando...';
+                    });
 
-              // 2. Fetch config (this saves to VisorConfigService cache)
-              final config = await VisorConfigService().fetchAndSaveConfig();
+                    // 1. Save current form values first so the request uses them
+                    final service = AppConfigService();
+                    await service.setProtocol(_selectedProtocol);
+                    await service.setHost(_hostController.text);
+                    await service.setApiKey(_apiKeyController.text);
 
-              // 2. Update UI with fetched values
-              if (mounted) {
-                setState(() {
-                  _timeoutController.text = config.tiempoEspera.toString();
-                  _adsDurationController.text = config.tiempoAds.toString();
-                });
+                    // 2. Fetch config with progress callback
+                    final result =
+                        await VisorConfigService().fetchAndSaveConfig(
+                      onProgress: (current, total) {
+                        if (mounted) {
+                          setState(() {
+                            _fetchStatus =
+                                'Descargando imágenes grupo $current/$total...';
+                          });
+                        }
+                      },
+                    );
+                    final config = result.config;
 
-                sm.showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Configuración actualizada.\n'
-                      'T. Anuncios: ${config.tiempoAds}s, '
-                      'Imágenes: ${config.images.length} (${config.esLink == 1 ? "Enlace" : "Base64"})',
-                    ),
-                    duration: const Duration(seconds: 4),
-                  ),
-                );
-              }
-            } catch (e) {
-              if (!context.mounted) return;
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text('Error: $e')));
-            }
-          },
-          child: const Text('Actualizar desde Servidor'),
+                    // 3. Update UI with fetched values
+                    if (mounted) {
+                      setState(() {
+                        _isFetching = false;
+                        _fetchStatus = '';
+                        _timeoutController.text =
+                            config.tiempoEspera.toString();
+                        _adsDurationController.text =
+                            config.tiempoAds.toString();
+                      });
+
+                      // Build image info string
+                      final String imageInfo;
+                      if (result.validImages > 0) {
+                        final tipo =
+                            config.esLink == 1 ? 'Enlace' : 'Base64';
+                        imageInfo =
+                            'Imágenes: ${result.validImages}/${result.totalSlots} ($tipo)';
+                      } else if (result.totalSlots > 0) {
+                        imageInfo =
+                            'Imágenes: 0/${result.totalSlots} (usando ${VisorConfig.defaultImages.length} por defecto)';
+                      } else {
+                        imageInfo =
+                            'Imágenes: ${VisorConfig.defaultImages.length} por defecto';
+                      }
+
+                      sm.showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Configuración actualizada.\n'
+                            'T. Anuncios: ${config.tiempoAds}s, '
+                            '$imageInfo',
+                          ),
+                          duration: const Duration(seconds: 4),
+                        ),
+                      );
+                    }
+                  } catch (e, stack) {
+                    debugPrint('ConfigDialog: Error fetching config: $e');
+                    debugPrint('ConfigDialog: Stack: $stack');
+                    if (mounted) {
+                      setState(() {
+                        _isFetching = false;
+                        _fetchStatus = '';
+                      });
+                    }
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text('Error: $e')));
+                  }
+                },
+          child: Text(_isFetching ? 'Descargando...' : 'Actualizar desde Servidor'),
         ),
         TextButton(
           onPressed: () async {

@@ -7,6 +7,9 @@ import 'app_config_service.dart';
 import 'http_client_service.dart';
 import 'image_cache_service.dart';
 
+/// Result record from fetchAndSaveConfig with diagnostic info
+typedef FetchConfigResult = ({VisorConfig config, int totalSlots, int validImages});
+
 class VisorConfigService {
   static final VisorConfigService _instance = VisorConfigService._internal();
   factory VisorConfigService() => _instance;
@@ -21,12 +24,18 @@ class VisorConfigService {
   // In-memory cache for quick access
   VisorConfig? _cachedConfig;
 
+  // Image groups: 4 groups of 3 images each (1-3, 4-6, 7-9, 10-12)
+  static const int _totalGroups = 4;
+
   Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
   }
 
-  /// Fetch config from server, pre-cache images, and save
-  Future<VisorConfig> fetchAndSaveConfig() async {
+  /// Fetch config from server in batches, pre-cache images, and save.
+  /// [onProgress] is called with (currentGroup, totalGroups) for UI updates.
+  Future<FetchConfigResult> fetchAndSaveConfig({
+    void Function(int currentGroup, int totalGroups)? onProgress,
+  }) async {
     final appConfig = AppConfigService();
 
     final protocol = appConfig.protocol;
@@ -35,61 +44,120 @@ class VisorConfigService {
 
     if (host.isEmpty) {
       debugPrint('VisorConfigService: Host no configurado. Configure el servidor en ajustes.');
-      return getConfig();
+      final c = getConfig();
+      return (config: c, totalSlots: 0, validImages: c.rawImages.length);
     }
 
     final url = '$protocol://$host/api/erp_dat/v1/_process/visor_conf';
 
-    final response = await HttpClientService().client.get(
-      url,
-      queryParameters: {'api_key': apiKey},
-      options: Options(responseType: ResponseType.plain),
-    );
+    // Fetch groups sequentially to avoid timeouts with large base64 images
+    VisorConfig? baseConfig;
+    final allImages = <String>[];
+    int totalSlots = 0;
 
-    if (response.statusCode == 200) {
+    for (int grupo = 1; grupo <= _totalGroups; grupo++) {
+      onProgress?.call(grupo, _totalGroups);
+      debugPrint('VisorConfigService: Fetching grupo $grupo/$_totalGroups...');
+
+      final response = await HttpClientService().client.get(
+        url,
+        queryParameters: {
+          'api_key': apiKey,
+          'param[grupo]': grupo,
+        },
+        options: Options(
+          responseType: ResponseType.plain,
+          receiveTimeout: const Duration(seconds: 60),
+        ),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to load config grupo $grupo: ${response.statusCode}');
+      }
+
       final responseStr = response.data?.toString() ?? '';
-
-      // Validate response is JSON before parsing
       final trimmed = responseStr.trim();
       if (trimmed.isEmpty || !trimmed.startsWith('{')) {
-        throw Exception('Respuesta no válida del servidor: ${trimmed.length > 100 ? '${trimmed.substring(0, 100)}...' : trimmed}');
+        throw Exception('Respuesta no válida del servidor (grupo $grupo)');
       }
 
       final Map<String, dynamic> jsonMap = Map<String, dynamic>.from(
           const JsonDecoder().convert(trimmed) as Map);
-      final config = VisorConfig.fromJson(jsonMap);
 
-      // Validate 'ok' flag
-      if (!config.ok) {
-        throw Exception('API returned ok=false');
+      // Log keys only on first group for diagnostics
+      if (grupo == 1) {
+        debugPrint('VisorConfigService: JSON keys: ${jsonMap.keys.toList()}');
       }
 
-      // Save metadata (without heavy base64 data) to SharedPreferences
-      final metaJson = const JsonEncoder().convert(config.toJsonWithoutImages());
-      await _prefs.setString(_keyConfigMeta, metaJson);
+      // Parse this group's config
+      final groupConfig = VisorConfig.fromJson(jsonMap);
 
-      // Sync timing settings to AppConfigService
-      await AppConfigService().setAdsDuration(config.tiempoAds);
-      if (config.tiempoEspera > 0) {
-        await AppConfigService().setIdleTimeout(config.tiempoEspera);
+      // Use first group as base for non-image settings
+      baseConfig ??= groupConfig;
+
+      // Collect images and slot count from this group
+      allImages.addAll(groupConfig.rawImages);
+      totalSlots += groupConfig.totalSlotCount;
+
+      // Log this group's images
+      for (int i = 1; i <= 12; i++) {
+        final key = 'img$i';
+        if (jsonMap.containsKey(key)) {
+          final val = jsonMap[key];
+          debugPrint('VisorConfigService: $key = ${val is String ? "${val.length} chars" : val.runtimeType}');
+        }
       }
 
-      // Pre-cache images in background and save references
-      if (config.hasCustomImages) {
-        final cachedRefs = await _preCacheAndSaveRefs(config.rawImages);
-
-        // Create config with cached references
-        final cachedConfig = config.copyWithCachedPaths(cachedRefs);
-        _cachedConfig = cachedConfig;
-
-        return cachedConfig;
-      }
-
-      _cachedConfig = config;
-      return config;
-    } else {
-      throw Exception('Failed to load config: ${response.statusCode}');
+      debugPrint('VisorConfigService: Grupo $grupo: ${groupConfig.rawImages.length} images');
     }
+
+    if (baseConfig == null) {
+      throw Exception('No config received from server');
+    }
+
+    // Validate 'ok' flag
+    if (!baseConfig.ok) {
+      throw Exception('API returned ok=false');
+    }
+
+    // Build merged config with all images
+    final config = VisorConfig(
+      ok: baseConfig.ok,
+      esLink: baseConfig.esLink,
+      tiempoEspera: baseConfig.tiempoEspera,
+      tiempoAds: baseConfig.tiempoAds,
+      imageList: allImages,
+      totalSlotCount: totalSlots,
+    );
+
+    debugPrint('VisorConfigService: Total parsed ${config.rawImages.length}/$totalSlots images');
+
+    // Save metadata (without heavy base64 data) to SharedPreferences
+    final metaJson = const JsonEncoder().convert(config.toJsonWithoutImages());
+    await _prefs.setString(_keyConfigMeta, metaJson);
+
+    // Sync timing settings to AppConfigService
+    await AppConfigService().setAdsDuration(config.tiempoAds);
+    if (config.tiempoEspera > 0) {
+      await AppConfigService().setIdleTimeout(config.tiempoEspera);
+    }
+
+    final validImages = config.rawImages.length;
+
+    // Pre-cache images and save references
+    if (config.hasCustomImages) {
+      onProgress?.call(_totalGroups, _totalGroups); // Signal caching phase
+      final cachedRefs = await _preCacheAndSaveRefs(config.rawImages);
+
+      // Create config with cached references
+      final cachedConfig = config.copyWithCachedPaths(cachedRefs);
+      _cachedConfig = cachedConfig;
+
+      return (config: cachedConfig, totalSlots: totalSlots, validImages: validImages);
+    }
+
+    _cachedConfig = config;
+    return (config: config, totalSlots: totalSlots, validImages: validImages);
   }
 
   /// Pre-cache images and save source references for later retrieval

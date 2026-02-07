@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
+import '../core/app_colors.dart';
 import '../services/image_upload_service.dart';
 import '../views/ads_view.dart';
 import '../views/product_view.dart';
@@ -26,13 +27,10 @@ class _VisorScreenState extends State<VisorScreen> {
   // Static decoration - avoids recreation on every build
   static final _containerDecoration = BoxDecoration(
     color: Colors.white,
-    border: Border.all(
-      color: const Color(0xFF808080),
-      width: 3,
-    ),
+    border: Border.all(color: const Color(0xFF808080), width: 3),
     boxShadow: const [
       BoxShadow(
-        color: Color(0x4D000000),
+        color: Color.fromARGB(255, 255, 255, 255),
         blurRadius: 20,
         spreadRadius: 5,
       ),
@@ -54,6 +52,12 @@ class _VisorScreenState extends State<VisorScreen> {
     if (event is! KeyDownEvent) return KeyEventResult.ignored;
 
     final provider = context.read<VisorProvider>();
+
+    // Ignore all input during loading
+    if (provider.viewState == VisorViewState.loading) {
+      return KeyEventResult.handled;
+    }
+
     final isAds = provider.viewState == VisorViewState.ads;
 
     // Only intercept during ads or while completing a buffered barcode scan
@@ -99,11 +103,7 @@ class _VisorScreenState extends State<VisorScreen> {
       return Scaffold(
         backgroundColor: Colors.white,
         resizeToAvoidBottomInset: false,
-        body: SizedBox(
-          width: 100.w,
-          height: 100.h,
-          child: _buildContent(),
-        ),
+        body: SizedBox(width: 100.w, height: 100.h, child: _buildContent()),
       );
     }
 
@@ -176,6 +176,58 @@ class _VisorScreenState extends State<VisorScreen> {
     }
   }
 
+  Widget _buildLoadingView(VisorProvider provider) {
+    final progress = provider.loadingTotalGroups > 0
+        ? provider.loadingCurrentGroup / provider.loadingTotalGroups
+        : 0.0;
+
+    return Container(
+      key: const ValueKey('loading'),
+      color: Colors.white,
+      child: Center(
+        child: SizedBox(
+          width: 320,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.storefront_rounded,
+                size: 64,
+                color: AppColors.brandPrimary,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Visor de Precios',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textTitle,
+                ),
+              ),
+              const SizedBox(height: 32),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: progress,
+                  minHeight: 6,
+                  backgroundColor: AppColors.divider,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    AppColors.brandPrimary,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                provider.loadingStatus,
+                style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildContent() {
     return Consumer<VisorProvider>(
       builder: (context, provider, child) {
@@ -197,24 +249,29 @@ class _VisorScreenState extends State<VisorScreen> {
         }
 
         return GestureDetector(
-          onTap: () => provider.showProductView(),
+          onTap: provider.viewState == VisorViewState.loading
+              ? null
+              : () => provider.showProductView(),
           child: AnimatedSwitcher(
             duration: const Duration(milliseconds: 600),
             switchInCurve: Curves.easeOut,
             switchOutCurve: Curves.easeIn,
-            child: provider.viewState == VisorViewState.ads
-                ? AdsView(key: const ValueKey('ads'))
-                : ProductView(
-                    key: const ValueKey('product'),
-                    product: provider.currentProduct,
-                    imageLoading: provider.imageLoading,
-                    onSearch: (query) => provider.searchProduct(query),
-                    onClear: () => provider.resetProduct(),
-                    onTakePhoto: provider.isEditor &&
-                            provider.currentProduct.barcode.isNotEmpty
-                        ? () => _handleTakePhoto(context, provider)
-                        : null,
-                  ),
+            child: switch (provider.viewState) {
+              VisorViewState.loading => _buildLoadingView(provider),
+              VisorViewState.ads => AdsView(key: const ValueKey('ads')),
+              VisorViewState.product => ProductView(
+                key: const ValueKey('product'),
+                product: provider.currentProduct,
+                imageLoading: provider.imageLoading,
+                onSearch: (query) => provider.searchProduct(query),
+                onClear: () => provider.resetProduct(),
+                onTakePhoto:
+                    provider.isEditor &&
+                        provider.currentProduct.barcode.isNotEmpty
+                    ? () => _handleTakePhoto(context, provider)
+                    : null,
+              ),
+            },
           ),
         );
       },

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 
@@ -13,6 +12,7 @@ import '../services/visor_config_service.dart';
 
 /// Visor state for UI
 enum VisorViewState {
+  loading,
   product,
   ads,
 }
@@ -34,8 +34,16 @@ class VisorProvider extends ChangeNotifier {
       : _productService = productService ?? ProductService();
 
   // Current view state
-  VisorViewState _viewState = VisorViewState.product;
+  VisorViewState _viewState = VisorViewState.loading;
   VisorViewState get viewState => _viewState;
+
+  // Loading progress
+  int _loadingCurrentGroup = 0;
+  int get loadingCurrentGroup => _loadingCurrentGroup;
+  int _loadingTotalGroups = 4;
+  int get loadingTotalGroups => _loadingTotalGroups;
+  String _loadingStatus = 'Iniciando...';
+  String get loadingStatus => _loadingStatus;
 
   // Search state
   SearchState _searchState = SearchState.idle;
@@ -74,9 +82,35 @@ class VisorProvider extends ChangeNotifier {
   // Track if disposed to prevent timer callbacks on disposed provider
   bool _isDisposed = false;
 
-  /// Initialize the provider and start idle timer
-  void initialize() {
+  /// Initialize the provider: show loading, fetch config, then start idle timer
+  Future<void> initialize() async {
+    _viewState = VisorViewState.loading;
+    _loadingCurrentGroup = 0;
+    _loadingStatus = 'Cargando configuración...';
+    notifyListeners();
+
+    // Load cached config as fallback
     _loadCachedConfig();
+
+    try {
+      await VisorConfigService().fetchAndSaveConfig(
+        onProgress: (currentGroup, totalGroups) {
+          if (_isDisposed) return;
+          _loadingCurrentGroup = currentGroup;
+          _loadingTotalGroups = totalGroups;
+          _loadingStatus = 'Descargando imágenes grupo $currentGroup/$totalGroups...';
+          notifyListeners();
+        },
+      );
+      // Refresh config after successful fetch
+      _loadCachedConfig();
+    } catch (e) {
+      debugPrint('Failed to fetch initial config: $e');
+    }
+
+    if (_isDisposed) return;
+    _viewState = VisorViewState.product;
+    notifyListeners();
     _resetIdleTimer();
   }
 
