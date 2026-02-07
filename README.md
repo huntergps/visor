@@ -1,57 +1,62 @@
-# Visor
+# TheosVisor - Visor de Precios
 
-Aplicación multiplataforma para visualización de productos con búsqueda, escaneo de códigos de barras y gestión de imágenes.
+Aplicación multiplataforma para consulta de precios en establecimientos Mega Primavera. Permite buscar productos por código de barras o texto, visualizar precios, descuentos y presentaciones, así como gestionar imágenes publicitarias.
 
 ## Descargas
 
-[![GitHub Release](https://img.shields.io/github/v/release/huntergps/visor)](https://github.com/huntergps/visor/releases/latest)
+[![GitHub Release](https://img.shields.io/github/v/release/huntergps/visor)](https://github.com/huntergps/visor/releases)
 
-| Plataforma | Descarga |
-|------------|----------|
-| Windows | [Descargar](https://github.com/huntergps/visor/releases/latest/download/visor-windows-v1.0.0.zip) |
-| macOS | [Descargar](https://github.com/huntergps/visor/releases/latest) |
-| Linux | [Descargar](https://github.com/huntergps/visor/releases/latest) |
-| Android | [Descargar](https://github.com/huntergps/visor/releases/latest) |
-| iOS | Disponible en App Store (próximamente) |
+| Plataforma | Descarga | Notas |
+|------------|----------|-------|
+| Windows | [visor-windows-v1.0.0.zip](https://github.com/huntergps/visor/releases/tag/v1.0.0) | Incluye VC++ Runtime |
+| macOS | [TheosVisor-1.0.0-macos.dmg](https://github.com/huntergps/visor/releases/tag/v1.0.0-macos) | Firmado y notarizado por Apple |
+| Android | [app-release.apk](https://github.com/huntergps/visor/releases/tag/v1.0.0-android) | Instalación directa (sideload) |
+| iOS | TestFlight | Solicitar invitación al administrador |
 
 [Ver todas las versiones](https://github.com/huntergps/visor/releases)
 
+## Manual de Usuario
+
+Consulta el [Manual de Usuario](docs/MANUAL_USUARIO.md) para instrucciones detalladas de instalación, uso y solución de problemas.
+
 ## Características
 
-- **Búsqueda de productos** - Búsqueda rápida por nombre o código
-- **Escaneo de códigos de barras** - Soporte para cámara en dispositivos móviles y desktop
-- **Visualización de precios** - Muestra precios, descuentos y presentaciones
-- **Editor de imágenes** - Captura, recorta y edita imágenes de productos
+- **Búsqueda de productos** - Por código de barras, código interno o texto
+- **Escáner de códigos de barras** - EAN-13, EAN-8, UPC, Code 128, Code 39 y más
+- **Visualización de precios** - Precios regulares, descuentos y precio final
+- **Presentaciones** - Muestra otras presentaciones del mismo producto
+- **Imágenes publicitarias** - Carrusel automático de imágenes del servidor
+- **Editor de imágenes** - Captura, recorta y sube fotos de productos (con autenticación)
 - **Caché inteligente** - Almacenamiento local de imágenes para mejor rendimiento
-- **Multiplataforma** - Disponible para Windows, macOS, Linux, Android, iOS y Web
-- **Configuración flexible** - API personalizable según necesidades
+- **Multiplataforma** - Windows, macOS, Android, iOS
+- **Configuración flexible** - URL del servidor, API key, tiempos y estilos personalizables
 
-## Capturas de pantalla
+## Capturas de Pantalla
 
 <p align="center">
-  <img src="docs/iphone1_noalpha.png" width="200" alt="iPhone Screenshot 1"/>
-  <img src="docs/iphone2_noalpha.png" width="200" alt="iPhone Screenshot 2"/>
-  <img src="docs/iphone3_noalpha.png" width="200" alt="iPhone Screenshot 3"/>
+  <img src="docs/iphone1_noalpha.png" width="200" alt="Pantalla principal"/>
+  <img src="docs/iphone2_noalpha.png" width="200" alt="Escáner"/>
+  <img src="docs/iphone3_noalpha.png" width="200" alt="Producto"/>
 </p>
 
 <p align="center">
-  <img src="docs/mac1_noalpha.png" width="600" alt="Mac Screenshot"/>
+  <img src="docs/mac1_noalpha.png" width="600" alt="Vista escritorio"/>
 </p>
 
 ## Requisitos
 
 ### Para usuarios
-- **Windows**: Windows 10 o superior (x64) - Incluye VC++ Runtime, no requiere instalación adicional
-- **macOS**: macOS 10.14 o superior
-- **Linux**: Ubuntu 18.04 o superior
+- **Windows**: Windows 10 o superior (x64)
+- **macOS**: macOS 10.14 (Mojave) o superior
 - **Android**: Android 5.0 (API 21) o superior
-- **iOS**: iOS 12.0 o superior
+- **iOS**: iOS 13.0 o superior
+- Conexión a red local para consultar el servidor ERP
 
 ### Para desarrolladores
 - Flutter SDK 3.10.3 o superior
 - Dart SDK 3.0 o superior
 
-## Instalación para desarrollo
+## Instalación para Desarrollo
 
 1. Clona el repositorio:
 ```bash
@@ -82,44 +87,49 @@ flutter run
 flutter build windows --release
 ```
 
-### macOS
+### macOS (firmado + notarizado)
 ```bash
 flutter build macos --release
+# Firmar con Developer ID:
+codesign --force --sign "HASH_CERTIFICADO" --entitlements macos/Runner/Release.entitlements --options runtime build/macos/Build/Products/Release/Visor.app
+# Crear DMG, notarizar y grapar:
+xcrun notarytool submit archivo.dmg --keychain-profile "notarytool-profile" --wait
+xcrun stapler staple archivo.dmg
 ```
 
-### Android
+### Android (APK firmado)
 ```bash
 flutter build apk --release
 ```
 
-### iOS
+### Android (AAB para Play Store)
 ```bash
-flutter build ios --release
+flutter build appbundle --release
 ```
 
-## Publicar Release
+### iOS (TestFlight)
+```bash
+flutter build ipa --release
+xcrun altool --upload-app --type ios -f build/ios/ipa/*.ipa --username "tu_apple_id" --password "tu_app_specific_password"
+```
+
+## Publicar Release (Windows)
 
 Scripts automatizados para compilar y publicar en GitHub:
 
-### Usando Git Bash
 ```bash
 ./scripts/release.sh           # Usa versión del pubspec.yaml
 ./scripts/release.sh 1.0.1     # Especifica versión
 ```
 
-### Usando PowerShell
 ```powershell
 .\scripts\release.ps1                    # Usa versión del pubspec.yaml
 .\scripts\release.ps1 -Version "1.0.1"   # Especifica versión
 ```
 
-Los scripts automáticamente:
-1. Obtienen los últimos cambios (git pull)
-2. Instalan dependencias
-3. Compilan para Windows
-4. Incluyen las DLLs de VC++ Runtime
-5. Crean el archivo ZIP
-6. Publican en GitHub Releases
+## Privacidad
+
+[Política de Privacidad](https://galapagos.tech/theosvisor-privacidad)
 
 ## Licencia
 
@@ -127,4 +137,6 @@ Este proyecto es software propietario. Todos los derechos reservados.
 
 ## Soporte
 
-Para reportar problemas o solicitar funcionalidades, crea un [issue](https://github.com/huntergps/visor/issues).
+- **Web:** [galapagos.tech](https://galapagos.tech)
+- **Email:** info@galapagos.tech
+- **Issues:** [GitHub Issues](https://github.com/huntergps/visor/issues)
