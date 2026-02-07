@@ -30,9 +30,11 @@ Write-Host "Version: v$Version" -ForegroundColor Yellow
 
 # 1. Pull de los últimos cambios
 Write-Host "`n[1/7] Obteniendo ultimos cambios..." -ForegroundColor Green
+$ErrorActionPreference = "Continue"
 git stash 2>$null
 git pull
 git stash pop 2>$null
+$ErrorActionPreference = "Stop"
 
 # 2. Obtener dependencias
 Write-Host "`n[2/7] Obteniendo dependencias..." -ForegroundColor Green
@@ -59,7 +61,9 @@ Compress-Archive -Path "$ReleaseDir\*" -DestinationPath $ZipPath -Force
 # 6. Publicar en GitHub
 Write-Host "`n[6/7] Publicando en GitHub..." -ForegroundColor Green
 
+$ErrorActionPreference = "Continue"
 $ReleaseExists = gh release view "v$Version" 2>$null
+$ErrorActionPreference = "Stop"
 if ($LASTEXITCODE -eq 0) {
     Write-Host "Release v$Version ya existe. Actualizando archivo..." -ForegroundColor Yellow
     gh release upload "v$Version" $ZipPath --clobber
