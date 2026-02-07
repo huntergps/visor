@@ -9,8 +9,8 @@ Aplicación multiplataforma para consulta de precios en establecimientos Mega Pr
 | Plataforma | Descarga | Notas |
 |------------|----------|-------|
 | Windows | [visor-windows-v1.0.0.zip](https://github.com/huntergps/visor/releases/tag/v1.0.0) | Incluye VC++ Runtime |
-| macOS | [TheosVisor-1.0.0-macos.dmg](https://github.com/huntergps/visor/releases/tag/v1.0.0-macos) | Firmado y notarizado por Apple |
 | Android | [app-release.apk](https://github.com/huntergps/visor/releases/tag/v1.0.0-android) | Instalación directa (sideload) |
+| macOS | [TheosVisor-1.0.0-macos.dmg](https://github.com/huntergps/visor/releases/tag/v1.0.0-macos) | Firmado y notarizado por Apple |
 | iOS | TestFlight | Solicitar invitación al administrador |
 
 [Ver todas las versiones](https://github.com/huntergps/visor/releases)

@@ -9,10 +9,10 @@ TheosVisor es una aplicación de consulta de precios para los establecimientos M
 ## Tabla de Contenido
 
 - [Instalación](#instalación)
-  - [Android](#android)
-  - [iOS (iPhone / iPad)](#ios-iphone--ipad)
-  - [macOS](#macos)
   - [Windows](#windows)
+  - [Android](#android)
+  - [macOS](#macos)
+  - [iOS (iPhone / iPad)](#ios-iphone--ipad)
 - [Inicio de la Aplicación](#inicio-de-la-aplicación)
 - [Pantalla Principal](#pantalla-principal)
 - [Buscar un Producto](#buscar-un-producto)
@@ -30,6 +30,14 @@ TheosVisor es una aplicación de consulta de precios para los establecimientos M
 
 ## Instalación
 
+### Windows
+
+1. Descargar `visor-windows-v1.0.0.zip` desde [GitHub Releases](https://github.com/huntergps/visor/releases/tag/v1.0.0)
+2. Extraer el contenido del ZIP
+3. Ejecutar `visor.exe`
+
+> Incluye las DLLs necesarias (VC++ Runtime). No requiere instalación adicional.
+
 ### Android
 
 1. Descargar el archivo `app-release.apk` desde [GitHub Releases](https://github.com/huntergps/visor/releases/tag/v1.0.0-android)
@@ -38,15 +46,6 @@ TheosVisor es una aplicación de consulta de precios para los establecimientos M
 4. Pulsar **Instalar**
 5. Si aparece una advertencia de Play Protect, pulsar **"Instalar de todos modos"**
 6. Abrir **TheosVisor** desde el cajón de aplicaciones
-
-### iOS (iPhone / iPad)
-
-La app se distribuye a través de **TestFlight**:
-
-1. Instalar [TestFlight](https://apps.apple.com/app/testflight/id899247664) desde la App Store
-2. Solicitar una invitación al administrador (se envía por email)
-3. Abrir el enlace de invitación desde el dispositivo
-4. Pulsar **Instalar** en TestFlight
 
 ### macOS
 
@@ -57,13 +56,14 @@ La app se distribuye a través de **TestFlight**:
 
 > La app está firmada y notarizada por Apple. No debería mostrar advertencias.
 
-### Windows
+### iOS (iPhone / iPad)
 
-1. Descargar `visor-windows-v1.0.0.zip` desde [GitHub Releases](https://github.com/huntergps/visor/releases/tag/v1.0.0)
-2. Extraer el contenido del ZIP
-3. Ejecutar `visor.exe`
+La app se distribuye a través de **TestFlight**:
 
-> Incluye las DLLs necesarias (VC++ Runtime). No requiere instalación adicional.
+1. Instalar [TestFlight](https://apps.apple.com/app/testflight/id899247664) desde la App Store
+2. Solicitar una invitación al administrador (se envía por email)
+3. Abrir el enlace de invitación desde el dispositivo
+4. Pulsar **Instalar** en TestFlight
 
 ---
 
