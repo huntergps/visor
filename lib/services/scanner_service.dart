@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:qr_barcode_dialog_scanner/qr_barcode_dialog_scanner.dart';
 
-import '../core/app_colors.dart';
+import '../widgets/common/scanner_dialog.dart';
 
 class ScannerService {
   static Future<String?> scan(BuildContext context) async {
@@ -36,20 +35,7 @@ class ScannerService {
         return null;
       }
 
-      final result = await QRBarcodeScanner.showScannerDialog(
-        context,
-        title: 'Escanear código',
-        subtitle: 'Apunte la cámara al código de barras',
-        primaryColor: AppColors.brandPrimary,
-        backgroundColor: Colors.black87,
-        allowFlashToggle: true,
-        allowCameraToggle: true,
-      );
-
-      if (result != null && result.code.isNotEmpty) {
-        return result.code;
-      }
-      return null;
+      return await ScannerDialog.show(context);
     } catch (e) {
       debugPrint('Scanner error: $e');
       return null;

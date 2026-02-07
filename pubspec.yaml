@@ -1,5 +1,5 @@
 name: visor
-description: "A new Flutter project."
+description: "TheosVisor - Visor de Precios"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -45,7 +45,7 @@ dependencies:
   path_provider: ^2.1.2
   crypto: ^3.0.3
   sizer: ^3.1.3
-  qr_barcode_dialog_scanner: ^1.2.2
+  mobile_scanner: ^7.0.1
   permission_handler: ^12.0.1
   image_picker: ^1.2.1
   crop_your_image: ^2.0.0
@@ -96,10 +96,9 @@ flutter:
   assets:
     - .env
     - assets/mepriga_logo.png
-    - assets/mega_primavera_logo.png
-    - assets/background.png
     - assets/empaque.png
     - assets/no_imagen.png
+    - assets/no_imagen2.png
     - assets/jaba.png
     - assets/quintal.png
     - assets/resma.png

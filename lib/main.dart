@@ -54,7 +54,7 @@ class VisorApp extends StatelessWidget {
         return ChangeNotifierProvider(
           create: (_) => VisorProvider()..initialize(),
           child: MaterialApp(
-            title: 'Visor de Precios',
+            title: 'TheosVisor',
             debugShowCheckedModeBanner: false,
             theme: ThemeData(
               useMaterial3: true,

@@ -1,4 +1,4 @@
-package com.example.visor
+package tech.galapagos.theosvisor
 
 import io.flutter.embedding.android.FlutterActivity
 

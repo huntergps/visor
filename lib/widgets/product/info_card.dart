@@ -35,15 +35,13 @@ class ProductSearchBarState extends State<ProductSearchBar> {
   void initState() {
     super.initState();
     _searchController = TextEditingController();
-    // Focus the field but hide soft keyboard (ready for hardware scanner input)
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _focusNode.requestFocus();
-        if (AppSizes.isMobile) {
-          SystemChannels.textInput.invokeMethod('TextInput.hide');
-        }
-      }
-    });
+    // On desktop: focus the field for hardware scanner input
+    // On mobile: don't auto-focus to avoid showing keyboard
+    if (!AppSizes.isMobile) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _focusNode.requestFocus();
+      });
+    }
   }
 
   @override
@@ -89,6 +87,8 @@ class ProductSearchBarState extends State<ProductSearchBar> {
       _searchController.text = code;
       widget.onSearch(code.toUpperCase());
     }
+    // Hide keyboard after returning from scanner
+    SystemChannels.textInput.invokeMethod('TextInput.hide');
   }
 
   @override

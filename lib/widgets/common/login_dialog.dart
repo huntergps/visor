@@ -62,9 +62,10 @@ class _LoginDialogState extends State<LoginDialog> {
       child: Container(
         width: 340,
         padding: const EdgeInsets.all(28),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
             const Icon(Icons.lock_outline, size: 40, color: AppColors.brandPrimary),
             const SizedBox(height: 12),
             const Text(
@@ -141,6 +142,7 @@ class _LoginDialogState extends State<LoginDialog> {
               child: const Text('Cancelar'),
             ),
           ],
+          ),
         ),
       ),
     );

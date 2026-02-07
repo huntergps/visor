@@ -201,9 +201,9 @@ class AppTextStyles {
   // Footer
   static TextStyle get footerText => TextStyle(
     fontFamily: _fontFamily,
-    fontSize: _mobile ? 13.sp : 16,
+    fontSize: _mobile ? 16.sp : 16,
     fontWeight: FontWeight.w500,
-    color: AppColors.textSecondary,
+    color: const Color.fromARGB(255, 171, 176, 187),
   );
 
   // Helper to create custom style based on OpenSans

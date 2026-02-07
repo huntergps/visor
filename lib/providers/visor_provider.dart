@@ -56,7 +56,7 @@ class VisorProvider extends ChangeNotifier {
     stock: 0,
     regularPrice: 0.0,
     finalPrice: 0.0,
-    imageUrl: 'assets/no_imagen.png',
+    imageUrl: 'assets/no_imagen2.png',
   );
   Product get currentProduct => _currentProduct;
 
@@ -149,7 +149,7 @@ class VisorProvider extends ChangeNotifier {
           name: 'SERVIDOR NO CONFIGURADO',
           barcode: query,
           stock: 0,
-          imageUrl: 'assets/no_imagen.png',
+          imageUrl: 'assets/no_imagen2.png',
           regularPrice: 0.0,
           finalPrice: 0.0,
         );
@@ -186,7 +186,7 @@ class VisorProvider extends ChangeNotifier {
           name: 'PRODUCTO NO ENCONTRADO',
           barcode: query,
           stock: 0,
-          imageUrl: 'assets/no_imagen.png',
+          imageUrl: 'assets/no_imagen2.png',
           regularPrice: 0.0,
           finalPrice: 0.0,
           discounts: const [],
@@ -239,7 +239,7 @@ class VisorProvider extends ChangeNotifier {
       stock: 0,
       regularPrice: 0.0,
       finalPrice: 0.0,
-      imageUrl: 'assets/no_imagen.png',
+      imageUrl: 'assets/no_imagen2.png',
     );
     _searchState = SearchState.idle;
     _imageLoading = false;
@@ -265,7 +265,7 @@ class VisorProvider extends ChangeNotifier {
       stock: 0,
       regularPrice: 0.0,
       finalPrice: 0.0,
-      imageUrl: 'assets/no_imagen.png',
+      imageUrl: 'assets/no_imagen2.png',
     );
     _searchState = SearchState.idle;
     _imageLoading = false;

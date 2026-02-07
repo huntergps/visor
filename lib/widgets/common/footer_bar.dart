@@ -10,10 +10,7 @@ class FooterBar extends StatelessWidget {
   const FooterBar({super.key});
 
   void _openConfig(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => const ConfigDialog(),
-    );
+    showDialog(context: context, builder: (context) => const ConfigDialog());
   }
 
   @override
@@ -30,26 +27,20 @@ class FooterBar extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                'Tu supermercado de ',
-                style: AppTextStyles.footerText,
-              ),
+              Text('Tu supermercado de ', style: AppTextStyles.footerText),
               GestureDetector(
                 onLongPress: () => _openConfig(context),
                 onDoubleTap: () => _openConfig(context),
                 child: Text(
                   'confianza',
                   style: AppTextStyles.custom(
-                    fontSize: isMobile ? AppSizes.fontCaption : 16,
+                    fontSize: isMobile ? 17 : 16,
                     fontWeight: FontWeight.w700,
                     color: AppColors.brandPrimary,
                   ),
                 ),
               ),
-              Text(
-                ', siempre a tu servicio.',
-                style: AppTextStyles.footerText,
-              ),
+              Text(', siempre a tu servicio.', style: AppTextStyles.footerText),
             ],
           ),
         ),

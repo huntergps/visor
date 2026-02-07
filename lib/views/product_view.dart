@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../core/app_colors.dart';
 import '../core/app_sizes.dart';
@@ -116,6 +117,8 @@ class _DraggableFloatingScannerState extends State<_DraggableFloatingScanner> {
           if (code != null) {
             widget.onSearch(code.toUpperCase());
           }
+          // Hide keyboard after returning from scanner
+          SystemChannels.textInput.invokeMethod('TextInput.hide');
         },
         child: FloatingActionButton(
           heroTag: 'scanner_fab',

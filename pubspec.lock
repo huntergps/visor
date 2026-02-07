@@ -617,7 +617,7 @@ packages:
     source: hosted
     version: "2.0.0"
   mobile_scanner:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: mobile_scanner
       sha256: c6184bf2913dd66be244108c9c27ca04b01caf726321c44b0e7a7a1e32d41044
@@ -832,14 +832,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.0"
-  qr_barcode_dialog_scanner:
-    dependency: "direct main"
-    description:
-      name: qr_barcode_dialog_scanner
-      sha256: dbad8bf07e0be528f8e3efd7638bfb06d82d9d991a8b00cbb7ce941c751858f0
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.2.2"
   screen_retriever:
     dependency: transitive
     description:

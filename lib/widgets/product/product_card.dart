@@ -101,7 +101,7 @@ class ProductCard extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        Image.asset('assets/no_imagen.png', fit: BoxFit.contain),
+        Image.asset('assets/no_imagen2.png', fit: BoxFit.contain),
         Positioned.fill(
           child: Container(
             color: Colors.white.withValues(alpha: 0.6),
@@ -122,6 +122,6 @@ class ProductCard extends StatelessWidget {
   }
 
   Widget _buildFallbackImage() {
-    return Image.asset('assets/no_imagen.png', fit: BoxFit.contain);
+    return Image.asset('assets/no_imagen2.png', fit: BoxFit.contain);
   }
 }
