@@ -32,11 +32,11 @@ TheosVisor es una aplicación de consulta de precios para los establecimientos M
 
 ### Windows
 
-1. Descargar `visor-windows-v1.0.0.zip` desde [GitHub Releases](https://github.com/huntergps/visor/releases/tag/v1.0.0)
-2. Extraer el contenido del ZIP
-3. Ejecutar `visor.exe`
+1. Descargar `visor-windows-v1.0.0-setup.exe` desde [GitHub Releases](https://github.com/huntergps/visor/releases/tag/v1.0.0)
+2. Ejecutar el instalador y seguir el asistente
+3. La aplicación se instala en `C:\Program Files\Visor` con accesos directos en el Escritorio y Menú Inicio
 
-> Incluye las DLLs necesarias (VC++ Runtime). No requiere instalación adicional.
+> Incluye las DLLs necesarias (VC++ Runtime). Para desinstalar, usar "Agregar o quitar programas" de Windows.
 
 ### Android
 
