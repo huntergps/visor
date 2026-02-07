@@ -51,12 +51,17 @@ Copy-Item "C:\Windows\System32\vcruntime140.dll" -Destination $ReleaseDir -Force
 Copy-Item "C:\Windows\System32\vcruntime140_1.dll" -Destination $ReleaseDir -Force
 Copy-Item "C:\Windows\System32\msvcp140.dll" -Destination $ReleaseDir -Force
 
-# 5. Crear ZIP
-Write-Host "`n[5/7] Creando archivo ZIP..." -ForegroundColor Green
-$ZipName = "visor-windows-v$Version.zip"
-$ZipPath = "build\windows\x64\runner\$ZipName"
-if (Test-Path $ZipPath) { Remove-Item $ZipPath -Force }
-Compress-Archive -Path "$ReleaseDir\*" -DestinationPath $ZipPath -Force
+# 5. Crear instalador con Inno Setup
+Write-Host "`n[5/7] Creando instalador con Inno Setup..." -ForegroundColor Green
+$InnoSetup = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+$IssFile = "$ProjectDir\scripts\installer.iss"
+$InstallerName = "visor-windows-v$Version-setup.exe"
+$InstallerPath = "build\windows\x64\runner\$InstallerName"
+& $InnoSetup /DMyAppVersion=$Version /DMyProjectDir=$ProjectDir $IssFile
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "Error: Fallo al crear el instalador" -ForegroundColor Red
+    exit 1
+}
 
 # 6. Publicar en GitHub
 Write-Host "`n[6/7] Publicando en GitHub..." -ForegroundColor Green
@@ -66,24 +71,24 @@ $ReleaseExists = gh release view "v$Version" 2>$null
 $ErrorActionPreference = "Stop"
 if ($LASTEXITCODE -eq 0) {
     Write-Host "Release v$Version ya existe. Actualizando archivo..." -ForegroundColor Yellow
-    gh release upload "v$Version" $ZipPath --clobber
+    gh release upload "v$Version" $InstallerPath --clobber
 } else {
     Write-Host "Creando nuevo release v$Version..." -ForegroundColor Yellow
     $ReleaseNotes = @"
 ## Visor v$Version
 
 ### Descargas
-- **Windows**: visor-windows-v$Version.zip (incluye VC++ Runtime)
+- **Windows**: $InstallerName (instalador, incluye VC++ Runtime)
 
 ### Notas
 - Release generado automaticamente
 "@
-    gh release create "v$Version" $ZipPath --title "Visor v$Version" --notes $ReleaseNotes
+    gh release create "v$Version" $InstallerPath --title "Visor v$Version" --notes $ReleaseNotes
 }
 
 # 7. Limpiar
 Write-Host "`n[7/7] Limpiando archivos temporales..." -ForegroundColor Green
-Remove-Item $ZipPath -Force
+Remove-Item $InstallerPath -Force
 
 Write-Host "`n=== Release v$Version publicado exitosamente ===" -ForegroundColor Green
 Write-Host "URL: https://github.com/huntergps/visor/releases/tag/v$Version"
