@@ -17,6 +17,10 @@ class AppConfigService {
   static const String _keyScannerStyle = 'scanner_style';
   static const String _keyFabPositionRight = 'fab_position_right';
   static const String _keyFabPositionBottom = 'fab_position_bottom';
+  static const String _keyPrinterType = 'printer_type';
+  static const String _keyPrinterAddress = 'printer_address';
+  static const String _keyPrinterPort = 'printer_port';
+  static const String _keyPrinterName = 'printer_name';
 
   // Defaults from environment variables (with fallbacks)
   String get _defaultProtocol => dotenv.env['VISOR_PROTOCOL'] ?? 'http';
@@ -44,6 +48,11 @@ class AppConfigService {
       _prefs.getDouble(_keyFabPositionRight) ?? _defaultFabPositionRight;
   double get fabPositionBottom =>
       _prefs.getDouble(_keyFabPositionBottom) ?? _defaultFabPositionBottom;
+
+  String get printerType => _prefs.getString(_keyPrinterType) ?? '';
+  String get printerAddress => _prefs.getString(_keyPrinterAddress) ?? '';
+  int get printerPort => _prefs.getInt(_keyPrinterPort) ?? 6101;
+  String get printerName => _prefs.getString(_keyPrinterName) ?? '';
 
   Future<void> setProtocol(String value) async {
     if (value != 'http' && value != 'https') return;
@@ -78,4 +87,19 @@ class AppConfigService {
 
   Future<void> setFabPositionBottom(double value) =>
       _prefs.setDouble(_keyFabPositionBottom, value);
+
+  Future<void> setPrinterType(String value) =>
+      _prefs.setString(_keyPrinterType, value);
+
+  Future<void> setPrinterAddress(String value) =>
+      _prefs.setString(_keyPrinterAddress, value.trim());
+
+  Future<void> setPrinterPort(int value) =>
+      _prefs.setInt(_keyPrinterPort, value);
+
+  Future<void> setPrinterName(String value) =>
+      _prefs.setString(_keyPrinterName, value.trim());
+
+  bool get hasPrinterConfigured =>
+      printerType.isNotEmpty && printerAddress.isNotEmpty;
 }

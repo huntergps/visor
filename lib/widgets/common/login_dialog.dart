@@ -40,7 +40,7 @@ class _LoginDialogState extends State<LoginDialog> {
 
     try {
       final provider = context.read<VisorProvider>();
-      final user = await provider.login(username, pin);
+      await provider.login(username, pin);
 
       if (!mounted) return;
 

@@ -157,7 +157,6 @@ class _ProductViewState extends State<ProductView> {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = AppSizes.isMobile;
     final hasHwScanner = HardwareScannerService.isAvailable;
 
     return LavaLampBackground(
@@ -187,8 +186,8 @@ class _ProductViewState extends State<ProductView> {
                 ),
               ],
             ),
-            if (!isMobile) const _FloatingLogo(),
-            if (isMobile &&
+            if (AppSizes.isDesktop) const _FloatingLogo(),
+            if (!AppSizes.isDesktop &&
                 !hasHwScanner &&
                 AppConfigService().scannerStyle == 'floating')
               _DraggableFloatingScanner(onSearch: widget.onSearch),

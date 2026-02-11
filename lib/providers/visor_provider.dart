@@ -72,6 +72,7 @@ class VisorProvider extends ChangeNotifier {
   AuthUser? _authUser;
   AuthUser? get authUser => _authUser;
   bool get isEditor => _authUser?.editorVisor ?? false;
+  bool get canPrint => _authUser?.imprimirPvpVisor ?? false;
 
   // Idle timer
   Timer? _idleTimer;

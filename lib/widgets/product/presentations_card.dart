@@ -5,13 +5,19 @@ import '../../core/app_sizes.dart';
 import '../../core/app_text_styles.dart';
 import '../../core/presentation_assets.dart';
 import '../../models/presentation_price.dart';
+import '../../models/product.dart';
 
 class PresentationsCard extends StatelessWidget {
   final List<PresentationPrice> presentations;
+  final Product product;
 
   static const int maxVisible = 5;
 
-  const PresentationsCard({super.key, required this.presentations});
+  const PresentationsCard({
+    super.key,
+    required this.presentations,
+    required this.product,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +31,10 @@ class PresentationsCard extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         for (var i = 0; i < presentations.length && i < maxVisible; i++)
-          _PresentationItem(presentation: presentations[i]),
+          _PresentationItem(
+            presentation: presentations[i],
+            product: product,
+          ),
       ],
     );
   }
@@ -33,8 +42,12 @@ class PresentationsCard extends StatelessWidget {
 
 class _PresentationItem extends StatelessWidget {
   final PresentationPrice presentation;
+  final Product product;
 
-  const _PresentationItem({required this.presentation});
+  const _PresentationItem({
+    required this.presentation,
+    required this.product,
+  });
 
   @override
   Widget build(BuildContext context) {

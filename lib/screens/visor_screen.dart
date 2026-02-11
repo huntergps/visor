@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
 import '../core/app_colors.dart';
+import '../core/app_sizes.dart';
 import '../services/hardware_scanner_service.dart';
 import '../services/image_upload_service.dart';
 import '../views/ads_view.dart';
@@ -115,9 +117,8 @@ class _VisorScreenState extends State<VisorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = Device.screenType == ScreenType.mobile;
-
-    if (isMobile) {
+    // Use desktop layout only on actual desktop platforms (not tablets)
+    if (!AppSizes.isDesktop) {
       return Scaffold(
         backgroundColor: Colors.white,
         resizeToAvoidBottomInset: false,
@@ -266,6 +267,13 @@ class _VisorScreenState extends State<VisorScreen> {
               _screenFocusNode.requestFocus();
             }
           });
+        } else if (provider.viewState == VisorViewState.product &&
+            AppSizes.isDesktop) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted && _screenFocusNode.hasFocus) {
+              _screenFocusNode.nextFocus();
+            }
+          });
         }
 
         return GestureDetector(
@@ -286,7 +294,8 @@ class _VisorScreenState extends State<VisorScreen> {
                 onSearch: (query) => provider.searchProduct(query),
                 onClear: () => provider.resetProduct(),
                 onTakePhoto:
-                    provider.isEditor &&
+                    !Platform.isMacOS &&
+                        provider.isEditor &&
                         provider.currentProduct.barcode.isNotEmpty
                     ? () => _handleTakePhoto(context, provider)
                     : null,

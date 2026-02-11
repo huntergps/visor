@@ -111,7 +111,7 @@ class ProductService {
             regularPrice: regularPrice,
             finalPrice: parseResult.mainPrice,
             unitLabel: parseResult.unitLabel,
-            taxPercent: 0.0,
+            taxPercent: _parseDouble(data['impuesto'] ?? data['iva']),
             discounts: parseResult.discounts,
             imageUrl: null, // Will be resolved by pendingImage
             imageBase64: null,
@@ -245,6 +245,7 @@ class ProductService {
 
       final pvp = _parseDouble(p['PVP']);
       final name = p['name']?.toString() ?? '';
+      final itemId = p['id']?.toString() ?? p['codigo']?.toString() ?? '';
       final factor = _parseDouble(p['factor']);
       final discountPercent = _parseDouble(p['descuento']);
       final itemDiscountAmount = _parseDouble(p['descuento_monto']);
@@ -268,6 +269,7 @@ class ProductService {
       } else if (!isMainUnit) {
         // Not a main unit - add as presentation
         presentations.add(PresentationPrice(
+          id: itemId,
           label: name,
           price: pvp,
           discountPercent: discountPercent,

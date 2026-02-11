@@ -41,12 +41,31 @@ class AuthService {
         debugPrint('AuthService: Response: $trimmed');
 
         if (trimmed.isEmpty || !trimmed.startsWith('{')) {
-          throw Exception('Respuesta del servidor: $trimmed');
+          throw Exception('Respuesta del servidor vacía o inválida');
         }
 
-        final json = Map<String, dynamic>.from(
-          const JsonDecoder().convert(trimmed) as Map,
-        );
+        // Try to parse JSON; server may return malformed JSON on errors
+        Map<String, dynamic> json;
+        try {
+          json = Map<String, dynamic>.from(
+            const JsonDecoder().convert(trimmed) as Map,
+          );
+        } on FormatException {
+          // Server returns malformed JSON for some errors — check raw text
+          if (trimmed.contains('NO_ENCONTRADO')) {
+            throw Exception('Usuario no encontrado');
+          }
+          throw Exception('Respuesta del servidor inválida');
+        }
+
+        // Check for API-level errors in parsed JSON
+        if (json['ok'] == false) {
+          final error = json['error']?.toString() ?? '';
+          if (error == 'NO_ENCONTRADO') {
+            throw Exception('Usuario no encontrado');
+          }
+          throw Exception(error.isNotEmpty ? error : 'Error de autenticación');
+        }
 
         return AuthUser.fromJson(json);
       } else {

@@ -13,12 +13,11 @@ class HeaderBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = AppSizes.isMobile;
-
-    if (isMobile) {
-      return _buildMobileHeader();
+    // Desktop header only on real desktop platforms (not tablet)
+    if (AppSizes.isDesktop) {
+      return _buildDesktopHeader();
     }
-    return _buildDesktopHeader();
+    return _buildMobileHeader();
   }
 
   Widget _buildMobileHeader() {

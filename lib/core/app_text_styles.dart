@@ -203,7 +203,7 @@ class AppTextStyles {
     fontFamily: _fontFamily,
     fontSize: _mobile ? 16.sp : 16,
     fontWeight: FontWeight.w500,
-    color: const Color.fromARGB(255, 171, 176, 187),
+    color: const Color.fromARGB(255, 50, 50, 55),
   );
 
   // Helper to create custom style based on OpenSans

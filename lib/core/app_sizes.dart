@@ -1,7 +1,13 @@
+import 'dart:io';
+
 import 'package:sizer/sizer.dart';
 
 class AppSizes {
   static bool get isMobile => Device.screenType == ScreenType.mobile;
+
+  /// True only on macOS, Windows, Linux (not tablets)
+  static bool get isDesktop =>
+      Platform.isMacOS || Platform.isWindows || Platform.isLinux;
 
   static double get radiusCard => isMobile ? 16.sp : 24;
   static double get radiusBadge => isMobile ? 10.sp : 14;

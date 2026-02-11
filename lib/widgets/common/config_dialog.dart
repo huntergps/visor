@@ -5,6 +5,7 @@ import '../../models/visor_config.dart';
 import '../../services/app_config_service.dart';
 import '../../services/image_cache_service.dart';
 import '../../services/visor_config_service.dart';
+import 'printer_dialog.dart';
 
 class ConfigDialog extends StatefulWidget {
   const ConfigDialog({super.key});
@@ -124,6 +125,28 @@ class _ConfigDialogState extends State<ConfigDialog> {
             },
             contentPadding: EdgeInsets.zero,
           ),
+        // Printer config
+        ListTile(
+          leading: const Icon(Icons.print),
+          title: Text(
+            AppConfigService().hasPrinterConfigured
+                ? AppConfigService().printerName.isNotEmpty
+                    ? AppConfigService().printerName
+                    : AppConfigService().printerAddress
+                : 'No configurada',
+          ),
+          subtitle: const Text('Impresora de etiquetas'),
+          trailing: const Icon(Icons.chevron_right),
+          contentPadding: EdgeInsets.zero,
+          onTap: () {
+            showDialog(
+              context: context,
+              builder: (_) => const PrinterDialog(),
+            ).then((_) {
+              if (mounted) setState(() {});
+            });
+          },
+        ),
         if (!isMobile) ...[
           SwitchListTile(
             title: const Text('Botón escáner flotante'),

@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/app_colors.dart';
 import '../../core/app_sizes.dart';
 import '../../core/app_text_styles.dart';
 import '../../models/product.dart';
+import '../../providers/visor_provider.dart';
 import '../../services/app_config_service.dart';
+import '../../services/printer_service.dart';
 import '../../services/scanner_service.dart';
+import '../common/printer_dialog.dart';
 import 'presentations_card.dart';
 import 'price_row.dart';
 
@@ -222,6 +226,11 @@ class _InfoCardState extends State<InfoCard> {
   void initState() {
     super.initState();
     _searchController = TextEditingController();
+    if (AppSizes.isDesktop) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _focusNode.requestFocus();
+      });
+    }
   }
 
   @override
@@ -248,6 +257,21 @@ class _InfoCardState extends State<InfoCard> {
       extentOffset: _searchController.text.length,
     );
     _focusNode.requestFocus();
+  }
+
+  Future<void> _printLabel(BuildContext context, Product product) async {
+    if (!AppConfigService().hasPrinterConfigured) {
+      showDialog(context: context, builder: (_) => const PrinterDialog());
+      return;
+    }
+    final error = await PrinterService().printLabel(product, null);
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(error ?? 'Etiqueta enviada a impresora'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   Widget _wrapExpanded({required Widget child}) {
@@ -399,12 +423,28 @@ class _InfoCardState extends State<InfoCard> {
 
                   SizedBox(height: AppSizes.paddingSmall),
 
-                  // Price Row
-                  PriceRow(
-                    priceOld: product.regularPrice,
-                    priceFinal: product.finalPrice,
-                    discountPercent: discount?.percent.toInt() ?? 0,
-                    hasDiscount: product.hasDiscount,
+                  // Price Row with print button (only if user has print permission)
+                  Row(
+                    children: [
+                      Expanded(
+                        child: PriceRow(
+                          priceOld: product.regularPrice,
+                          priceFinal: product.finalPrice,
+                          discountPercent: discount?.percent.toInt() ?? 0,
+                          hasDiscount: product.hasDiscount,
+                        ),
+                      ),
+                      if (context.watch<VisorProvider>().canPrint)
+                        IconButton(
+                          icon: Icon(
+                            Icons.print,
+                            color: AppColors.textSecondary,
+                            size: isMobile ? 22.0 : 26.0,
+                          ),
+                          tooltip: 'Imprimir etiqueta',
+                          onPressed: () => _printLabel(context, product),
+                        ),
+                    ],
                   ),
 
                   if (product.unitLabel.isNotEmpty)
@@ -420,6 +460,7 @@ class _InfoCardState extends State<InfoCard> {
                   if (product.presentations.isNotEmpty)
                     PresentationsCard(
                       presentations: product.presentations,
+                      product: product,
                     ),
                 ],
               ),

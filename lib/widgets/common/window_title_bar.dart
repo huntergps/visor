@@ -11,7 +11,7 @@ import 'login_dialog.dart';
 class WindowTitleBar extends StatelessWidget {
   const WindowTitleBar({super.key});
 
-  static const double _height = 36;
+  static const double height = 36;
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +20,7 @@ class WindowTitleBar extends StatelessWidget {
     }
 
     return SizedBox(
-      height: _height,
+      height: height,
       child: Row(
         children: [
           // Draggable area fills remaining space
@@ -210,7 +210,7 @@ class _WindowButtonState extends State<_WindowButton> {
         onTap: widget.onPressed,
         child: Container(
           width: 46,
-          height: WindowTitleBar._height,
+          height: WindowTitleBar.height,
           color: isHoverStyled
               ? widget.hoverColor
               : _hovering
@@ -287,7 +287,7 @@ class _UserButtonState extends State<_UserButton> {
       child: GestureDetector(
         onTap: _handleTap,
         child: Container(
-          height: WindowTitleBar._height,
+          height: WindowTitleBar.height,
           padding: const EdgeInsets.symmetric(horizontal: 8),
           color: _hovering
               ? Colors.white.withValues(alpha: 0.1)
