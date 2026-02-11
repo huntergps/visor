@@ -7,6 +7,7 @@ import 'screens/visor_screen.dart';
 
 import 'providers/visor_provider.dart';
 import 'services/app_config_service.dart';
+import 'services/hardware_scanner_service.dart';
 import 'services/visor_config_service.dart';
 import 'services/image_cache_service.dart';
 
@@ -19,6 +20,7 @@ void main() async {
   await AppConfigService().init();
   await VisorConfigService().init();
   await ImageCacheService().init();
+  await HardwareScannerService.init();
 
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     if (Platform.isWindows) {

@@ -29,19 +29,33 @@ class ProductSearchBar extends StatefulWidget {
 
 class ProductSearchBarState extends State<ProductSearchBar> {
   late TextEditingController _searchController;
-  final FocusNode _focusNode = FocusNode();
+  late final FocusNode _focusNode;
 
   @override
   void initState() {
     super.initState();
     _searchController = TextEditingController();
+    _focusNode = FocusNode(onKeyEvent: _handleHardwareKey);
     // On desktop: focus the field for hardware scanner input
-    // On mobile: don't auto-focus to avoid showing keyboard
+    // On mobile: don't auto-focus to avoid showing keyboard;
+    //   hardware scanner input is handled by the global Focus in VisorScreen
     if (!AppSizes.isMobile) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _focusNode.requestFocus();
       });
     }
+  }
+
+  /// Handle hardware keyboard Enter key when TextField has focus
+  /// (e.g. user manually focused it, then scans with hardware scanner)
+  KeyEventResult _handleHardwareKey(FocusNode node, KeyEvent event) {
+    if (event is KeyDownEvent &&
+        (event.logicalKey == LogicalKeyboardKey.enter ||
+         event.logicalKey == LogicalKeyboardKey.numpadEnter)) {
+      _submitSearch();
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
   }
 
   @override
@@ -68,6 +82,10 @@ class ProductSearchBarState extends State<ProductSearchBar> {
       extentOffset: _searchController.text.length,
     );
     _focusNode.requestFocus();
+    // On mobile, keep soft keyboard hidden (hardware scanner doesn't need it)
+    if (AppSizes.isMobile) {
+      SystemChannels.textInput.invokeMethod('TextInput.hide');
+    }
   }
 
   void _toggleKeyboard() {

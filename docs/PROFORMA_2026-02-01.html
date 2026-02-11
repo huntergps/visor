@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>PROFORMA DE SERVICIOS 2026-02-01</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2.5cm 2cm;
+        }
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 12pt;
+            line-height: 1.4;
+            color: #000;
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+        h1 {
+            text-align: center;
+            font-size: 14pt;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+        .header-info {
+            margin-bottom: 25px;
+        }
+        .header-info p {
+            margin: 2px 0;
+        }
+        .intro {
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 5px;
+        }
+        table, th, td {
+            border: 1px solid #000;
+        }
+        th {
+            background-color: #f0f0f0;
+            padding: 8px;
+            text-align: center;
+            font-weight: bold;
+        }
+        td {
+            padding: 10px;
+            vertical-align: top;
+        }
+        .col-valor {
+            width: 80px;
+            text-align: right;
+        }
+        .col-tiempo {
+            width: 80px;
+            text-align: center;
+        }
+        .totals-table {
+            width: 100%;
+            margin-top: 0;
+        }
+        .totals-table td {
+            padding: 6px 10px;
+        }
+        .totals-label {
+            text-align: right;
+            font-weight: bold;
+            border: 1px solid #000;
+        }
+        .totals-value {
+            width: 80px;
+            text-align: right;
+            border: 1px solid #000;
+        }
+        .totals-empty {
+            border: none !important;
+        }
+        ul {
+            margin: 5px 0;
+            padding-left: 25px;
+        }
+        ul li {
+            margin-bottom: 3px;
+        }
+        ul ul {
+            list-style-type: circle;
+            margin-top: 3px;
+        }
+        .section-title {
+            font-weight: bold;
+            margin-top: 12px;
+            margin-bottom: 5px;
+            text-decoration: underline;
+        }
+        .payment {
+            margin-top: 25px;
+        }
+        .payment strong {
+            color: #000;
+        }
+        .signature {
+            margin-top: 50px;
+        }
+        .signature p {
+            margin: 2px 0;
+        }
+        @media print {
+            body {
+                padding: 0;
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>PROFORMA DE SERVICIOS 2026-02-01</h1>
+
+    <div class="header-info">
+        <p>Fecha: 9-feb-2026</p>
+        <p>Cliente: MEGA PRIMAVERA GALAPAGOS S.A</p>
+        <p>Atenci&oacute;n: Sr. Jhonson Ben&iacute;tez</p>
+    </div>
+
+    <p class="intro">A continuaci&oacute;n, se detalla los valores de los servicios requeridos:</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>RESUMEN DE SERVICIOS</th>
+                <th class="col-valor">Valor</th>
+                <th class="col-tiempo">Tiempo estimado</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <p class="section-title">1. Desarrollo de API REST en Velneo V7</p>
+                    <p>Creaci&oacute;n y configuraci&oacute;n de los endpoints de servicio web en el ERP Theos
+                    (Velneo V7) para la integraci&oacute;n con la aplicaci&oacute;n TheosVisor:</p>
+                    <ul>
+                        <li>Endpoint de consulta de productos por c&oacute;digo de barras.</li>
+                        <li>Endpoint de b&uacute;squeda de productos por nombre y/o descripci&oacute;n.</li>
+                        <li>Endpoint de gesti&oacute;n y servicio de im&aacute;genes publicitarias (listado, descarga por grupos).</li>
+                        <li>Endpoint de subida de im&aacute;genes de productos desde la aplicaci&oacute;n.</li>
+                        <li>Configuraci&oacute;n de autenticaci&oacute;n y seguridad de la API.</li>
+                        <li>Pruebas de integraci&oacute;n y validaci&oacute;n de respuestas.</li>
+                    </ul>
+                </td>
+                <td class="col-valor">$2.400,00</td>
+                <td class="col-tiempo">4 d&iacute;as</td>
+            </tr>
+            <tr>
+                <td>
+                    <p class="section-title">2. Desarrollo de aplicaci&oacute;n TheosVisor (Flutter)</p>
+                    <p>Desarrollo de la aplicaci&oacute;n multiplataforma <strong>TheosVisor &ndash; Visor de Precios</strong>
+                    para consulta de productos y precios, con las siguientes funcionalidades:</p>
+                    <ul>
+                        <li>Consulta de precios por c&oacute;digo de barras o b&uacute;squeda manual por nombre.</li>
+                        <li>Esc&aacute;ner de c&oacute;digos de barras con c&aacute;mara del dispositivo (EAN-13, EAN-8, UPC-A, Code 128, Code 39).</li>
+                        <li>Visualizaci&oacute;n de im&aacute;genes publicitarias con descarga autom&aacute;tica por grupos y pantalla de progreso.</li>
+                        <li>Modo editor de im&aacute;genes integrado con autenticaci&oacute;n, permitiendo:
+                            <ul>
+                                <li>Captura de foto desde c&aacute;mara.</li>
+                                <li>Selecci&oacute;n desde galer&iacute;a.</li>
+                                <li>Recorte y subida al servidor.</li>
+                            </ul>
+                        </li>
+                        <li>Interfaz responsive optimizada para dispositivos m&oacute;viles y escritorio.</li>
+                        <li>Compatibilidad multiplataforma: Android, Windows, macOS, iOS.</li>
+                        <li>Empaquetado y distribuci&oacute;n:
+                            <ul>
+                                <li>APK firmado para Android (por arquitectura y universal).</li>
+                                <li>Instalador Windows con Inno Setup (incluye VC++ Runtime).</li>
+                                <li>Aplicaci&oacute;n nativa macOS.</li>
+                            </ul>
+                        </li>
+                        <li>Documentaci&oacute;n: manual de usuario, pol&iacute;tica de privacidad y README del proyecto.</li>
+                    </ul>
+                </td>
+                <td class="col-valor">$3.000,00</td>
+                <td class="col-tiempo">5 d&iacute;as</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <table class="totals-table">
+        <tr>
+            <td class="totals-empty"></td>
+            <td class="totals-label">SUBTOTAL</td>
+            <td class="totals-value">$5.400,00</td>
+        </tr>
+        <tr>
+            <td class="totals-empty"></td>
+            <td class="totals-label">IVA 15%</td>
+            <td class="totals-value">$810,00</td>
+        </tr>
+        <tr>
+            <td class="totals-empty"></td>
+            <td class="totals-label">TOTAL</td>
+            <td class="totals-value"><strong>$6.210,00</strong></td>
+        </tr>
+    </table>
+
+    <div class="payment">
+        <p><strong>Forma de pago:</strong></p>
+        <p>50% al aceptar la propuesta como anticipo y 50% a la culminaci&oacute;n del trabajo con la
+        entrega de la nota de venta correspondiente.</p>
+    </div>
+
+    <div class="signature">
+        <p>Atentamente,</p>
+        <br><br><br>
+        <p><strong>Elmer Salazar A.</strong></p>
+        <p>GalapagosTech</p>
+    </div>
+
+</body>
+</html>

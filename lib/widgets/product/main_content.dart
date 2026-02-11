@@ -12,6 +12,8 @@ class MainContent extends StatelessWidget {
   final Function(String) onSearch;
   final VoidCallback? onClear;
   final VoidCallback? onTakePhoto;
+  final bool showSearchBar;
+  final VoidCallback? onSearchDone;
 
   const MainContent({
     super.key,
@@ -20,6 +22,8 @@ class MainContent extends StatelessWidget {
     required this.onSearch,
     this.onClear,
     this.onTakePhoto,
+    this.showSearchBar = true,
+    this.onSearchDone,
   });
 
   @override
@@ -54,13 +58,20 @@ class MainContent extends StatelessWidget {
 
     return Column(
       children: [
-        // Search bar always on top (fixed)
-        ProductSearchBar(
-          onSearch: onSearch,
-          onClear: onClear,
-          currentBarcode: product.barcode,
-        ),
-        SizedBox(height: AppSizes.paddingXSmall),
+        if (showSearchBar) ...[
+          ProductSearchBar(
+            onSearch: (query) {
+              onSearch(query);
+              onSearchDone?.call();
+            },
+            onClear: () {
+              onClear?.call();
+              onSearchDone?.call();
+            },
+            currentBarcode: product.barcode,
+          ),
+          SizedBox(height: AppSizes.paddingXSmall),
+        ],
         // Scrollable content: info + image
         Expanded(
           child: SingleChildScrollView(

@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
 import '../core/app_colors.dart';
+import '../services/hardware_scanner_service.dart';
 import '../services/image_upload_service.dart';
 import '../views/ads_view.dart';
 import '../views/product_view.dart';
@@ -37,13 +40,26 @@ class _VisorScreenState extends State<VisorScreen> {
     ],
   );
 
-  // Desktop keyboard capture for barcode scanner during ads
+  // Keyboard capture for barcode scanner
   final FocusNode _screenFocusNode = FocusNode();
   String _keyboardBuffer = '';
   VisorViewState? _lastViewState;
 
+  // Hardware scanner (Zebra DataWedge) — Android only, no-op on other platforms
+  StreamSubscription<String>? _scanSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _scanSubscription = HardwareScannerService.scanStream.listen((barcode) {
+      if (!mounted) return;
+      context.read<VisorProvider>().searchProduct(barcode.toUpperCase());
+    });
+  }
+
   @override
   void dispose() {
+    _scanSubscription?.cancel();
     _screenFocusNode.dispose();
     super.dispose();
   }
@@ -59,9 +75,11 @@ class _VisorScreenState extends State<VisorScreen> {
     }
 
     final isAds = provider.viewState == VisorViewState.ads;
+    final isMobile = Device.screenType == ScreenType.mobile;
 
-    // Only intercept during ads or while completing a buffered barcode scan
-    if (!isAds && _keyboardBuffer.isEmpty) {
+    // On desktop: only intercept during ads or while completing a buffered scan
+    // On mobile: always intercept hardware keyboard input (barcode scanners)
+    if (!isMobile && !isAds && _keyboardBuffer.isEmpty) {
       return KeyEventResult.ignored;
     }
 
@@ -103,7 +121,12 @@ class _VisorScreenState extends State<VisorScreen> {
       return Scaffold(
         backgroundColor: Colors.white,
         resizeToAvoidBottomInset: false,
-        body: SizedBox(width: 100.w, height: 100.h, child: _buildContent()),
+        body: Focus(
+          focusNode: _screenFocusNode,
+          autofocus: true,
+          onKeyEvent: _handleKeyEvent,
+          child: SizedBox(width: 100.w, height: 100.h, child: _buildContent()),
+        ),
       );
     }
 
@@ -231,21 +254,18 @@ class _VisorScreenState extends State<VisorScreen> {
   Widget _buildContent() {
     return Consumer<VisorProvider>(
       builder: (context, provider, child) {
-        // Re-capture keyboard focus when ads start showing (desktop only)
-        final isMobile = Device.screenType == ScreenType.mobile;
-        if (!isMobile) {
-          if (provider.viewState == VisorViewState.ads &&
-              _lastViewState != VisorViewState.ads) {
-            _keyboardBuffer = '';
-          }
-          _lastViewState = provider.viewState;
-          if (provider.viewState == VisorViewState.ads) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted && !_screenFocusNode.hasFocus) {
-                _screenFocusNode.requestFocus();
-              }
-            });
-          }
+        // Re-capture keyboard focus when ads start showing
+        if (provider.viewState == VisorViewState.ads &&
+            _lastViewState != VisorViewState.ads) {
+          _keyboardBuffer = '';
+        }
+        _lastViewState = provider.viewState;
+        if (provider.viewState == VisorViewState.ads) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted && !_screenFocusNode.hasFocus) {
+              _screenFocusNode.requestFocus();
+            }
+          });
         }
 
         return GestureDetector(

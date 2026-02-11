@@ -5,6 +5,7 @@ import '../core/app_colors.dart';
 import '../core/app_sizes.dart';
 import '../models/product.dart';
 import '../services/app_config_service.dart';
+import '../services/hardware_scanner_service.dart';
 import '../services/scanner_service.dart';
 import '../widgets/common/footer_bar.dart';
 import '../widgets/common/header_bar.dart';
@@ -131,7 +132,7 @@ class _DraggableFloatingScannerState extends State<_DraggableFloatingScanner> {
   }
 }
 
-class ProductView extends StatelessWidget {
+class ProductView extends StatefulWidget {
   final Product product;
   final bool imageLoading;
   final Function(String) onSearch;
@@ -148,8 +149,16 @@ class ProductView extends StatelessWidget {
   });
 
   @override
+  State<ProductView> createState() => _ProductViewState();
+}
+
+class _ProductViewState extends State<ProductView> {
+  bool _showSearchBar = false;
+
+  @override
   Widget build(BuildContext context) {
     final isMobile = AppSizes.isMobile;
+    final hasHwScanner = HardwareScannerService.isAvailable;
 
     return LavaLampBackground(
       child: SafeArea(
@@ -160,19 +169,29 @@ class ProductView extends StatelessWidget {
                 const HeaderBar(),
                 Expanded(
                   child: MainContent(
-                    product: product,
-                    imageLoading: imageLoading,
-                    onSearch: onSearch,
-                    onClear: onClear,
-                    onTakePhoto: onTakePhoto,
+                    product: widget.product,
+                    imageLoading: widget.imageLoading,
+                    onSearch: widget.onSearch,
+                    onClear: widget.onClear,
+                    onTakePhoto: widget.onTakePhoto,
+                    showSearchBar: !hasHwScanner || _showSearchBar,
+                    onSearchDone: hasHwScanner
+                        ? () => setState(() => _showSearchBar = false)
+                        : null,
                   ),
                 ),
-                const FooterBar(),
+                FooterBar(
+                  onSearchTap: hasHwScanner
+                      ? () => setState(() => _showSearchBar = !_showSearchBar)
+                      : null,
+                ),
               ],
             ),
             if (!isMobile) const _FloatingLogo(),
-            if (isMobile && AppConfigService().scannerStyle == 'floating')
-              _DraggableFloatingScanner(onSearch: onSearch),
+            if (isMobile &&
+                !hasHwScanner &&
+                AppConfigService().scannerStyle == 'floating')
+              _DraggableFloatingScanner(onSearch: widget.onSearch),
           ],
         ),
       ),

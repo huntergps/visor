@@ -5,6 +5,7 @@ import '../../core/app_colors.dart';
 import '../../core/app_sizes.dart';
 import '../../core/app_text_styles.dart';
 import '../../providers/visor_provider.dart';
+import '../../services/hardware_scanner_service.dart';
 import 'login_dialog.dart';
 
 class HeaderBar extends StatelessWidget {
@@ -21,6 +22,8 @@ class HeaderBar extends StatelessWidget {
   }
 
   Widget _buildMobileHeader() {
+    final compact = HardwareScannerService.isAvailable;
+
     return Builder(
       builder: (context) {
         final provider = context.watch<VisorProvider>();
@@ -29,19 +32,22 @@ class HeaderBar extends StatelessWidget {
         return Padding(
           padding: EdgeInsets.symmetric(
             horizontal: AppSizes.paddingXSmall,
+            vertical: compact ? 4 : 0,
           ),
           child: Row(
             children: [
-              // Logo
-              Image.asset(
-                'assets/mepriga_logo.png',
-                height: 96,
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) {
-                  return const SizedBox(width: 96, height: 96);
-                },
-              ),
-              const SizedBox(width: 8),
+              // Logo — hide on compact (hardware scanner devices)
+              if (!compact) ...[
+                Image.asset(
+                  'assets/mepriga_logo.png',
+                  height: 96,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const SizedBox(width: 96, height: 96);
+                  },
+                ),
+                const SizedBox(width: 8),
+              ],
               // Title text
               Expanded(
                 child: GestureDetector(
@@ -67,11 +73,12 @@ class HeaderBar extends StatelessWidget {
                           ),
                         ),
                       ),
-                      Text(
-                        'El encanto de comprar...!',
-                        style: AppTextStyles.headerSloganMobile,
-                        textAlign: TextAlign.center,
-                      ),
+                      if (!compact)
+                        Text(
+                          'El encanto de comprar...!',
+                          style: AppTextStyles.headerSloganMobile,
+                          textAlign: TextAlign.center,
+                        ),
                     ],
                   ),
                 ),
