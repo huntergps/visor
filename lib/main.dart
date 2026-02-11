@@ -36,10 +36,14 @@ void main() async {
     );
     await windowManager.setMinimumSize(const Size(800, 600));
 
-    windowManager.waitUntilReadyToShow(null, () async {
-      await windowManager.maximize();
+    const windowOptions = WindowOptions(
+      minimumSize: Size(800, 600),
+      titleBarStyle: TitleBarStyle.hidden,
+    );
+    windowManager.waitUntilReadyToShow(windowOptions, () async {
       await windowManager.show();
       await windowManager.focus();
+      await windowManager.maximize();
     });
   }
 
