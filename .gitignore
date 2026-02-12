@@ -52,3 +52,6 @@ app.*.map.json
 
 # Keystore backup (never push to remote)
 /keystore-backup/
+
+# Instaladores generados
+/instalador/
