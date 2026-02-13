@@ -105,13 +105,20 @@ class AppConfigService {
 
   // Label coordinate defaults (matching Velneo ZPL template)
   static const Map<String, int> labelCoordDefaults = {
-    'name1_x': 27, 'name1_y': 57,
-    'name2_x': 27, 'name2_y': 91,
-    'price_x': 400, 'price_y': 169,
-    'barcode_x': 30, 'barcode_y': 176,
-    'iva_x': 464, 'iva_y': 189,
-    'presentation_x': 494, 'presentation_y': 113,
-    'code_x': 275, 'code_y': 117,
+    'name1_x': 32,
+    'name1_y': 52,
+    'name2_x': 32,
+    'name2_y': 86,
+    'price_x': 405,
+    'price_y': 164,
+    'barcode_x': 35,
+    'barcode_y': 171,
+    'iva_x': 469,
+    'iva_y': 184,
+    'presentation_x': 499,
+    'presentation_y': 108,
+    'code_x': 280,
+    'code_y': 112,
     'lt': 0,
   };
 

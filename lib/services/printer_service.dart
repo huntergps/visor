@@ -94,21 +94,21 @@ class PrinterService {
     final lt = cfg.getLabelCoord('lt');
     final ltCmd = lt != 0 ? '^LT$lt' : '';
 
-    return '^XA'
-        '^CI28' // UTF-8 encoding (Ñ, tildes, etc.)
-        '^PW609'
-        '^LL0200'
-        '^LS0'
-        '$ltCmd'
-        '^FT${cfg.getLabelCoord('name1_x')},${cfg.getLabelCoord('name1_y')}^A0N,38,38^FH\\^FD$name1^FS'
-        '^FT${cfg.getLabelCoord('name2_x')},${cfg.getLabelCoord('name2_y')}^A0N,38,38^FH\\^FD$name2^FS'
-        '^FT${cfg.getLabelCoord('price_x')},${cfg.getLabelCoord('price_y')}^A0N,68,67^FH\\^FD\$$priceStr^FS'
-        '^BY2,3,54^FT${cfg.getLabelCoord('barcode_x')},${cfg.getLabelCoord('barcode_y')}^BCN,,Y,N'
-        '^FD>:$barcodeId^FS'
-        '^FT${cfg.getLabelCoord('iva_x')},${cfg.getLabelCoord('iva_y')}^A0N,17,16^FH\\^FD$ivaText^FS'
-        '^FT${cfg.getLabelCoord('presentation_x')},${cfg.getLabelCoord('presentation_y')}^A0N,20,19^FH\\^FD$presentationName^FS'
-        '^FT${cfg.getLabelCoord('code_x')},${cfg.getLabelCoord('code_y')}^A0N,28,28^FH\\^FD$productCode^FS'
-        '^PQ1,0,1,Y^XZ';
+    return '^XA\n'
+        '^CI28\n' // UTF-8 encoding (Ñ, tildes, etc.)
+        '^PW609\n'
+        '^LL0200\n'
+        '^LS0\n'
+        '${ltCmd.isNotEmpty ? '$ltCmd\n' : ''}'
+        '^FT${cfg.getLabelCoord('name1_x')},${cfg.getLabelCoord('name1_y')}^A0N,38,38^FH\\^FD$name1^FS\n'
+        '^FT${cfg.getLabelCoord('name2_x')},${cfg.getLabelCoord('name2_y')}^A0N,38,38^FH\\^FD$name2^FS\n'
+        '^FT${cfg.getLabelCoord('price_x')},${cfg.getLabelCoord('price_y')}^A0N,68,67^FH\\^FD\$$priceStr^FS\n'
+        '^BY2,3,54^FT${cfg.getLabelCoord('barcode_x')},${cfg.getLabelCoord('barcode_y')}^BCN,,Y,N\n'
+        '^FD>:$barcodeId^FS\n'
+        '^FT${cfg.getLabelCoord('iva_x')},${cfg.getLabelCoord('iva_y')}^A0N,17,16^FH\\^FD$ivaText^FS\n'
+        '^FT${cfg.getLabelCoord('presentation_x')},${cfg.getLabelCoord('presentation_y')}^A0N,20,19^FH\\^FD$presentationName^FS\n'
+        '^FT${cfg.getLabelCoord('code_x')},${cfg.getLabelCoord('code_y')}^A0N,28,28^FH\\^FD$productCode^FS\n'
+        '^PQ1,0,1,Y^XZ\n';
   }
 
   /// Generate a test label ZPL matching Velneo template
@@ -117,21 +117,21 @@ class PrinterService {
     final lt = cfg.getLabelCoord('lt');
     final ltCmd = lt != 0 ? '^LT$lt' : '';
 
-    return '^XA'
-        '^CI28' // UTF-8 encoding (Ñ, tildes, etc.)
-        '^PW609'
-        '^LL0200'
-        '^LS0'
-        '$ltCmd'
-        '^FT${cfg.getLabelCoord('name1_x')},${cfg.getLabelCoord('name1_y')}^A0N,38,38^FH\\^FDTEST ETIQUETA^FS'
-        '^FT${cfg.getLabelCoord('name2_x')},${cfg.getLabelCoord('name2_y')}^A0N,38,38^FH\\^FDTheosVisor^FS'
-        '^FT${cfg.getLabelCoord('price_x')},${cfg.getLabelCoord('price_y')}^A0N,68,67^FH\\^FD\$9.99^FS'
-        '^BY2,3,54^FT${cfg.getLabelCoord('barcode_x')},${cfg.getLabelCoord('barcode_y')}^BCN,,Y,N'
-        '^FD>:1234567890^FS'
-        '^FT${cfg.getLabelCoord('iva_x')},${cfg.getLabelCoord('iva_y')}^A0N,17,16^FH\\^FDINCLUYE 15% IVA^FS'
-        '^FT${cfg.getLabelCoord('presentation_x')},${cfg.getLabelCoord('presentation_y')}^A0N,20,19^FH\\^FDUNIDAD X 1^FS'
-        '^FT${cfg.getLabelCoord('code_x')},${cfg.getLabelCoord('code_y')}^A0N,28,28^FH\\^FD88981^FS'
-        '^PQ1,0,1,Y^XZ';
+    return '^XA\n'
+        '^CI28\n' // UTF-8 encoding (Ñ, tildes, etc.)
+        '^PW609\n'
+        '^LL0200\n'
+        '^LS0\n'
+        '${ltCmd.isNotEmpty ? '$ltCmd\n' : ''}'
+        '^FT${cfg.getLabelCoord('name1_x')},${cfg.getLabelCoord('name1_y')}^A0N,38,38^FH\\^FDTEST ETIQUETA^FS\n'
+        '^FT${cfg.getLabelCoord('name2_x')},${cfg.getLabelCoord('name2_y')}^A0N,38,38^FH\\^FDTheosVisor^FS\n'
+        '^FT${cfg.getLabelCoord('price_x')},${cfg.getLabelCoord('price_y')}^A0N,68,67^FH\\^FD\$9.99^FS\n'
+        '^BY2,3,54^FT${cfg.getLabelCoord('barcode_x')},${cfg.getLabelCoord('barcode_y')}^BCN,,Y,N\n'
+        '^FD>:1234567890^FS\n'
+        '^FT${cfg.getLabelCoord('iva_x')},${cfg.getLabelCoord('iva_y')}^A0N,17,16^FH\\^FDINCLUYE 15% IVA^FS\n'
+        '^FT${cfg.getLabelCoord('presentation_x')},${cfg.getLabelCoord('presentation_y')}^A0N,20,19^FH\\^FDUNIDAD X 1^FS\n'
+        '^FT${cfg.getLabelCoord('code_x')},${cfg.getLabelCoord('code_y')}^A0N,28,28^FH\\^FD88981^FS\n'
+        '^PQ1,0,1,Y^XZ\n';
   }
 
   /// Print a product label
@@ -259,6 +259,9 @@ class PrinterService {
       // Send ZPL label
       debugPrint('PrinterService: Sending ${zpl.length} bytes of ZPL...');
       await _btChannel.invokeMethod('send', {'data': zpl});
+
+      // Wait for Bluetooth buffer to finish transmitting before closing
+      await Future.delayed(const Duration(milliseconds: 500));
 
       debugPrint('PrinterService: Done, disconnecting...');
       await _btChannel.invokeMethod('disconnect');

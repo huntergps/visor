@@ -112,7 +112,9 @@ class ProductService {
             regularPrice: regularPrice,
             finalPrice: parseResult.mainPrice,
             unitLabel: parseResult.unitLabel,
-            taxPercent: parseResult.taxPercent,
+            taxPercent: _parseDouble(data['impuesto'] ?? data['iva']) > 0
+                ? _parseDouble(data['impuesto'] ?? data['iva'])
+                : parseResult.taxPercent,
             discounts: parseResult.discounts,
             imageUrl: null, // Will be resolved by pendingImage
             imageBase64: null,
@@ -246,7 +248,7 @@ class ProductService {
     for (var p in preciosList) {
       if (p is! Map) continue;
 
-      final pvp = _parseDouble(p['PVP']);
+      final pvp = _parseDouble(p['pvp']);
       final name = p['name']?.toString() ?? '';
       final itemId = p['id']?.toString() ?? p['codigo']?.toString() ?? '';
       final codbar = p['codbar']?.toString() ?? '';
@@ -260,7 +262,7 @@ class ProductService {
         // First main unit found - extract main price info
         mainPrice = pvp;
         discountAmount = itemDiscountAmount;
-        unitLabel = name;
+        unitLabel = _cleanUnitLabel(name);
         mainCodbar = codbar;
         taxPercent = _parseDouble(p['iva_porcentaje']);
         foundMainPrice = true;
@@ -306,14 +308,19 @@ class ProductService {
     return (factor - 1.0).abs() < 0.001 || name.toUpperCase().contains('UNIDAD');
   }
 
-  /// Clean unit label (kept for reference, no longer strips " X 1")
+  /// Clean unit label: "UNIDAD X 1" -> "UNIDAD"
   String _cleanUnitLabel(String name) {
+    final rawName = name.toUpperCase();
+    if (rawName.contains(' X 1')) {
+      return rawName.replaceAll(' X 1', '').trim();
+    }
     return name;
   }
 
-  /// Safely parse a number to double
+  /// Safely parse a number to double (handles both num and String)
   double _parseDouble(dynamic value) {
     if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0.0;
     return 0.0;
   }
 }
