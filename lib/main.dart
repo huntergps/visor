@@ -36,15 +36,7 @@ void main() async {
     );
     await windowManager.setMinimumSize(const Size(800, 600));
 
-    const windowOptions = WindowOptions(
-      minimumSize: Size(800, 600),
-      titleBarStyle: TitleBarStyle.hidden,
-    );
-    windowManager.waitUntilReadyToShow(windowOptions, () async {
-      await windowManager.show();
-      await windowManager.focus();
-      await windowManager.maximize();
-    });
+    // Native Show() handles SW_SHOWMAXIMIZED in win32_window.cpp
   }
 
   runApp(const VisorApp());

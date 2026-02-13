@@ -85,7 +85,10 @@ class ProductSearchBarState extends State<ProductSearchBar> {
       baseOffset: 0,
       extentOffset: _searchController.text.length,
     );
-    _focusNode.requestFocus();
+    // Request focus after frame to override TextField.onSubmitted unfocus
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _focusNode.requestFocus();
+    });
     // On mobile, keep soft keyboard hidden (hardware scanner doesn't need it)
     if (AppSizes.isMobile) {
       SystemChannels.textInput.invokeMethod('TextInput.hide');
@@ -256,7 +259,10 @@ class _InfoCardState extends State<InfoCard> {
       baseOffset: 0,
       extentOffset: _searchController.text.length,
     );
-    _focusNode.requestFocus();
+    // Request focus after frame to override TextField.onSubmitted unfocus
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _focusNode.requestFocus();
+    });
   }
 
   Future<void> _printLabel(BuildContext context, Product product) async {
