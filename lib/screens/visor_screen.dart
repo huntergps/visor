@@ -256,21 +256,25 @@ class _VisorScreenState extends State<VisorScreen> {
     return Consumer<VisorProvider>(
       builder: (context, provider, child) {
         // Re-capture keyboard focus when ads start showing
+        final previousViewState = _lastViewState;
         if (provider.viewState == VisorViewState.ads &&
-            _lastViewState != VisorViewState.ads) {
+            previousViewState != VisorViewState.ads) {
           _keyboardBuffer = '';
         }
         _lastViewState = provider.viewState;
         if (provider.viewState == VisorViewState.ads) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted && !_screenFocusNode.hasFocus) {
+            if (mounted && !_screenFocusNode.hasPrimaryFocus) {
               _screenFocusNode.requestFocus();
             }
           });
         } else if (provider.viewState == VisorViewState.product &&
-            AppSizes.isDesktop) {
+            AppSizes.isDesktop &&
+            previousViewState == VisorViewState.ads) {
+          // Only move focus from screen node to TextField when returning from ads.
+          // On initial load (loading→product), InfoCard.initState handles focus.
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted && _screenFocusNode.hasFocus) {
+            if (mounted && _screenFocusNode.hasPrimaryFocus) {
               _screenFocusNode.nextFocus();
             }
           });
