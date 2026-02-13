@@ -5,6 +5,7 @@ class Product {
   final int? id;
   final String name;
   final String barcode;
+  final String codbar; // EAN/UPC barcode from prices
   final String family;
   final int stock;
   final String? imageUrl;
@@ -23,6 +24,7 @@ class Product {
     this.id,
     required this.name,
     required this.barcode,
+    this.codbar = '',
     this.family = '',
     required this.stock,
     this.imageUrl,
@@ -50,6 +52,7 @@ class Product {
       id: id,
       name: name,
       barcode: barcode,
+      codbar: codbar,
       family: family,
       stock: stock,
       imageUrl: imageUrl,

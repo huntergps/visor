@@ -264,8 +264,36 @@ class _InfoCardState extends State<InfoCard> {
       showDialog(context: context, builder: (_) => const PrinterDialog());
       return;
     }
+
+    // Show loading overlay while printing
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const PopScope(
+        canPop: false,
+        child: Center(
+          child: Card(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Imprimiendo...', style: TextStyle(fontSize: 16)),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
     final error = await PrinterService().printLabel(product, null);
+
     if (!context.mounted) return;
+    Navigator.of(context).pop(); // Close loading dialog
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(error ?? 'Etiqueta enviada a impresora'),

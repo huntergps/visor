@@ -2,23 +2,29 @@ import 'dart:io';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:bluetooth_classic/bluetooth_classic.dart';
-import 'package:bluetooth_classic/models/device.dart';
+import 'package:flutter/services.dart';
 
 import '../models/printer_config.dart';
 import '../models/product.dart';
 import '../models/presentation_price.dart';
 import 'app_config_service.dart';
 
-/// Standard Bluetooth SPP UUID for serial port communication
-const _sppUuid = '00001101-0000-1000-8000-00805f9b34fb';
+/// Simple representation of a Bluetooth device
+class BtDevice {
+  final String name;
+  final String address;
+  BtDevice({required this.name, required this.address});
+}
 
 class PrinterService {
   static final PrinterService _instance = PrinterService._internal();
   factory PrinterService() => _instance;
   PrinterService._internal();
 
-  final BluetoothClassic _bluetooth = BluetoothClassic();
+  /// Native Bluetooth channel for paired devices, connect, send, disconnect
+  static const _btChannel = MethodChannel(
+    'tech.galapagos.theosvisor/bluetooth',
+  );
 
   /// Whether Bluetooth is available on this platform (Android only)
   bool get isBluetoothSupported => Platform.isAndroid;
@@ -42,22 +48,24 @@ class PrinterService {
   Future<void> saveConfig(PrinterConfig printerConfig) async {
     final config = AppConfigService();
     await config.setPrinterType(
-        printerConfig.type == PrinterType.bluetooth ? 'bluetooth' : 'wifi');
+      printerConfig.type == PrinterType.bluetooth ? 'bluetooth' : 'wifi',
+    );
     await config.setPrinterAddress(printerConfig.address);
     await config.setPrinterPort(printerConfig.port);
     await config.setPrinterName(printerConfig.name);
   }
 
-  /// Generate ZPL label for a product with optional presentation
+  /// Generate ZPL label matching Velneo template with configurable coordinates
   String generateZpl(Product product, PresentationPrice? presentation) {
-    // Split name into two lines of max 30 chars
+    final cfg = AppConfigService();
+
+    // Split name into two lines (~30 chars fit per line with font 38)
     final fullName = product.name;
     String name1, name2;
     if (fullName.length <= 30) {
       name1 = fullName;
       name2 = '';
     } else {
-      // Try to break at a space near position 30
       int breakIdx = fullName.lastIndexOf(' ', 30);
       if (breakIdx <= 0) breakIdx = 30;
       name1 = fullName.substring(0, breakIdx).trim();
@@ -65,66 +73,131 @@ class PrinterService {
       if (name2.length > 30) name2 = name2.substring(0, 30);
     }
 
-    // Price
     final price = presentation?.price ?? product.finalPrice;
     final priceStr = price.toStringAsFixed(2);
 
-    // Barcode ID
-    final barcodeId = presentation?.id.isNotEmpty == true
-        ? presentation!.id
-        : product.barcode;
+    // Use codbar (EAN/UPC) for barcode; fall back to product code
+    final barcodeId = presentation?.codbar.isNotEmpty == true
+        ? presentation!.codbar
+        : product.codbar.isNotEmpty
+            ? product.codbar
+            : product.barcode;
 
-    // IVA text
     final ivaText = product.taxPercent > 0
         ? 'INCLUYE ${product.taxPercent.toStringAsFixed(0)}% IVA'
         : '';
 
-    // Presentation name
     final presentationName = presentation?.label ?? product.unitLabel;
-
-    // Product code
     final productCode = product.barcode;
 
-    return '^XA\n'
-        '^PW609\n'
-        '^LL0200\n'
-        '^LS0\n'
-        '^FT32,32^A0N,38,38^FH\\^FD$name1^FS\n'
-        '^FT32,66^A0N,38,38^FH\\^FD$name2^FS\n'
-        '^FT405,144^A0N,68,67^FH\\^FD\$$priceStr^FS\n'
-        '^BY2,3,54^FT35,151^BCN,,Y,N\n'
-        '^FD>:$barcodeId^FS\n'
-        '^FT469,164^A0N,17,16^FH\\^FD$ivaText^FS\n'
-        '^FT499,88^A0N,20,19^FH\\^FD$presentationName^FS\n'
-        '^FT280,92^A0N,28,28^FH\\^FD$productCode^FS\n'
-        '^PQ1,0,1,Y^XZ\n';
+    // Configurable coordinates (defaults match Velneo ZPL)
+    final lt = cfg.getLabelCoord('lt');
+    final ltCmd = lt != 0 ? '^LT$lt' : '';
+
+    return '^XA'
+        '^CI28' // UTF-8 encoding (Ñ, tildes, etc.)
+        '^PW609'
+        '^LL0200'
+        '^LS0'
+        '$ltCmd'
+        '^FT${cfg.getLabelCoord('name1_x')},${cfg.getLabelCoord('name1_y')}^A0N,38,38^FH\\^FD$name1^FS'
+        '^FT${cfg.getLabelCoord('name2_x')},${cfg.getLabelCoord('name2_y')}^A0N,38,38^FH\\^FD$name2^FS'
+        '^FT${cfg.getLabelCoord('price_x')},${cfg.getLabelCoord('price_y')}^A0N,68,67^FH\\^FD\$$priceStr^FS'
+        '^BY2,3,54^FT${cfg.getLabelCoord('barcode_x')},${cfg.getLabelCoord('barcode_y')}^BCN,,Y,N'
+        '^FD>:$barcodeId^FS'
+        '^FT${cfg.getLabelCoord('iva_x')},${cfg.getLabelCoord('iva_y')}^A0N,17,16^FH\\^FD$ivaText^FS'
+        '^FT${cfg.getLabelCoord('presentation_x')},${cfg.getLabelCoord('presentation_y')}^A0N,20,19^FH\\^FD$presentationName^FS'
+        '^FT${cfg.getLabelCoord('code_x')},${cfg.getLabelCoord('code_y')}^A0N,28,28^FH\\^FD$productCode^FS'
+        '^PQ1,0,1,Y^XZ';
   }
 
-  /// Generate a test label ZPL
+  /// Generate a test label ZPL matching Velneo template
   String _generateTestZpl() {
-    return '^XA\n'
-        '^PW609\n'
-        '^LL0200\n'
-        '^LS0\n'
-        '^FT32,32^A0N,38,38^FH\\^FDTEST ETIQUETA^FS\n'
-        '^FT32,66^A0N,38,38^FH\\^FDTheosVisor^FS\n'
-        '^FT405,144^A0N,68,67^FH\\^FD\$9.99^FS\n'
-        '^BY2,3,54^FT35,151^BCN,,Y,N\n'
-        '^FD>:1234567890^FS\n'
-        '^FT469,164^A0N,17,16^FH\\^FDINCLUYE 15% IVA^FS\n'
-        '^FT499,88^A0N,20,19^FH\\^FDUNIDAD^FS\n'
-        '^FT280,92^A0N,28,28^FH\\^FD1234567890^FS\n'
-        '^PQ1,0,1,Y^XZ\n';
+    final cfg = AppConfigService();
+    final lt = cfg.getLabelCoord('lt');
+    final ltCmd = lt != 0 ? '^LT$lt' : '';
+
+    return '^XA'
+        '^CI28' // UTF-8 encoding (Ñ, tildes, etc.)
+        '^PW609'
+        '^LL0200'
+        '^LS0'
+        '$ltCmd'
+        '^FT${cfg.getLabelCoord('name1_x')},${cfg.getLabelCoord('name1_y')}^A0N,38,38^FH\\^FDTEST ETIQUETA^FS'
+        '^FT${cfg.getLabelCoord('name2_x')},${cfg.getLabelCoord('name2_y')}^A0N,38,38^FH\\^FDTheosVisor^FS'
+        '^FT${cfg.getLabelCoord('price_x')},${cfg.getLabelCoord('price_y')}^A0N,68,67^FH\\^FD\$9.99^FS'
+        '^BY2,3,54^FT${cfg.getLabelCoord('barcode_x')},${cfg.getLabelCoord('barcode_y')}^BCN,,Y,N'
+        '^FD>:1234567890^FS'
+        '^FT${cfg.getLabelCoord('iva_x')},${cfg.getLabelCoord('iva_y')}^A0N,17,16^FH\\^FDINCLUYE 15% IVA^FS'
+        '^FT${cfg.getLabelCoord('presentation_x')},${cfg.getLabelCoord('presentation_y')}^A0N,20,19^FH\\^FDUNIDAD X 1^FS'
+        '^FT${cfg.getLabelCoord('code_x')},${cfg.getLabelCoord('code_y')}^A0N,28,28^FH\\^FD88981^FS'
+        '^PQ1,0,1,Y^XZ';
   }
 
   /// Print a product label
   Future<String?> printLabel(
-      Product product, PresentationPrice? presentation) async {
+    Product product,
+    PresentationPrice? presentation,
+  ) async {
     final config = getConfig();
     if (config == null) return 'Impresora no configurada';
 
     final zpl = generateZpl(product, presentation);
     return _sendZpl(zpl, config);
+  }
+
+  /// Configure printer: set media type, label size, and head close action.
+  /// Saves settings to printer memory so they survive power cycles.
+  Future<String?> calibrate() async {
+    final config = getConfig();
+    if (config == null) return 'Impresora no configurada';
+
+    // SGD commands to configure printer (work in both CPCL and ZPL)
+    const printerSetup =
+        // Set ZPL mode
+        '! U1 setvar "device.languages" "zpl"\r\n'
+        // Set media type to continuous (fixed advance, no sensor)
+        '! U1 setvar "ezpl.media_type" "continuous"\r\n'
+        // Head close action: no motion (don't feed blanks)
+        '! U1 setvar "ezpl.head_close_action" "no_motion"\r\n'
+        // Power on action: no motion
+        '! U1 setvar "ezpl.power_up_action" "no_motion"\r\n';
+
+    // ZPL: set label dimensions and save to memory
+    const zplSetup =
+        '^XA'
+        '^PW609' // Print width: 7.5cm = 609 dots
+        '^LL200' // Label length: 2.5cm = 200 dots
+        '^MNC' // Media tracking: continuous (fixed advance)
+        '^JUS' // Save settings to memory
+        '^XZ';
+
+    try {
+      if (config.type == PrinterType.bluetooth) {
+        await _btChannel.invokeMethod('connect', {'address': config.address});
+        await _btChannel.invokeMethod('send', {'data': printerSetup});
+        await Future.delayed(const Duration(seconds: 1));
+        await _btChannel.invokeMethod('send', {'data': zplSetup});
+        await Future.delayed(const Duration(seconds: 2));
+        await _btChannel.invokeMethod('disconnect');
+      } else {
+        final socket = await Socket.connect(
+          config.address,
+          config.port,
+          timeout: const Duration(seconds: 5),
+        );
+        socket.add(utf8.encode(printerSetup));
+        await socket.flush();
+        await Future.delayed(const Duration(seconds: 1));
+        socket.add(utf8.encode(zplSetup));
+        await socket.flush();
+        await Future.delayed(const Duration(seconds: 2));
+        await socket.close();
+      }
+      return null;
+    } catch (e) {
+      return 'Error configurando: $e';
+    }
   }
 
   /// Print a test label
@@ -154,8 +227,11 @@ class PrinterService {
   Future<String?> _sendViaWifi(String zpl, String ip, int port) async {
     Socket? socket;
     try {
-      socket = await Socket.connect(ip, port,
-          timeout: const Duration(seconds: 5));
+      socket = await Socket.connect(
+        ip,
+        port,
+        timeout: const Duration(seconds: 5),
+      );
       socket.add(utf8.encode(zpl));
       await socket.flush();
       return null; // success
@@ -166,34 +242,63 @@ class PrinterService {
     }
   }
 
-  /// Send ZPL via Bluetooth Classic (Android only)
+  /// Switch printer language to ZPL (SGD command works in CPCL mode)
+  /// Then calibrate media to auto-detect label gaps
+  static const _setZplCommand = '! U1 setvar "device.languages" "zpl"\r\n';
+
+  /// Send ZPL via Bluetooth
   Future<String?> _sendViaBluetooth(String zpl, String address) async {
     if (!isBluetoothSupported) {
       return 'Bluetooth no soportado en esta plataforma';
     }
+
     try {
-      await _bluetooth.initPermissions();
-      final connected = await _bluetooth.connect(address, _sppUuid);
-      if (!connected) {
-        return 'No se pudo conectar por Bluetooth';
-      }
-      await _bluetooth.write(zpl);
-      await _bluetooth.disconnect();
+      debugPrint('PrinterService: Connecting via BT to $address...');
+      await _btChannel.invokeMethod('connect', {'address': address});
+
+      // Send ZPL label
+      debugPrint('PrinterService: Sending ${zpl.length} bytes of ZPL...');
+      await _btChannel.invokeMethod('send', {'data': zpl});
+
+      debugPrint('PrinterService: Done, disconnecting...');
+      await _btChannel.invokeMethod('disconnect');
       return null; // success
     } catch (e) {
+      debugPrint('PrinterService: BT failed: $e');
       try {
-        await _bluetooth.disconnect();
+        await _btChannel.invokeMethod('disconnect');
       } catch (_) {}
       return 'Error Bluetooth: $e';
     }
   }
 
   /// Get list of paired Bluetooth devices (Android only)
-  Future<List<Device>> getPairedDevices() async {
-    if (!isBluetoothSupported) return [];
+  Future<List<BtDevice>> getPairedDevices() async {
+    if (!isBluetoothSupported) {
+      debugPrint('PrinterService: Bluetooth not supported on this platform');
+      return [];
+    }
+
     try {
-      await _bluetooth.initPermissions();
-      return await _bluetooth.getPairedDevices();
+      debugPrint(
+        'PrinterService: Getting paired devices via native channel...',
+      );
+      final result = await _btChannel.invokeMethod('getPairedDevices');
+      if (result is List) {
+        final devices = result.map((item) {
+          final map = Map<String, dynamic>.from(item as Map);
+          return BtDevice(
+            name: map['name'] as String? ?? 'Desconocido',
+            address: map['address'] as String? ?? '',
+          );
+        }).toList();
+        debugPrint('PrinterService: Found ${devices.length} paired devices');
+        for (final d in devices) {
+          debugPrint('PrinterService:   - ${d.name} (${d.address})');
+        }
+        return devices;
+      }
+      return [];
     } catch (e) {
       debugPrint('PrinterService: Error getting paired devices: $e');
       return [];

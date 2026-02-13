@@ -102,4 +102,28 @@ class AppConfigService {
 
   bool get hasPrinterConfigured =>
       printerType.isNotEmpty && printerAddress.isNotEmpty;
+
+  // Label coordinate defaults (matching Velneo ZPL template)
+  static const Map<String, int> labelCoordDefaults = {
+    'name1_x': 27, 'name1_y': 57,
+    'name2_x': 27, 'name2_y': 91,
+    'price_x': 400, 'price_y': 169,
+    'barcode_x': 30, 'barcode_y': 176,
+    'iva_x': 464, 'iva_y': 189,
+    'presentation_x': 494, 'presentation_y': 113,
+    'code_x': 275, 'code_y': 117,
+    'lt': 0,
+  };
+
+  int getLabelCoord(String key) =>
+      _prefs.getInt('label_$key') ?? labelCoordDefaults[key] ?? 0;
+
+  Future<void> setLabelCoord(String key, int value) =>
+      _prefs.setInt('label_$key', value);
+
+  Future<void> resetLabelCoords() async {
+    for (final key in labelCoordDefaults.keys) {
+      await _prefs.remove('label_$key');
+    }
+  }
 }

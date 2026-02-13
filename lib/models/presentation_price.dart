@@ -4,6 +4,7 @@ class PresentationPrice {
   final double price;
   final double discountPercent;
   final double discountAmount;
+  final String codbar;
 
   const PresentationPrice({
     this.id = '',
@@ -11,5 +12,6 @@ class PresentationPrice {
     required this.price,
     this.discountPercent = 0.0,
     this.discountAmount = 0.0,
+    this.codbar = '',
   });
 }

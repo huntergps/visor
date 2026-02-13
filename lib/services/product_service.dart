@@ -106,12 +106,13 @@ class ProductService {
             id: data['id'] is num ? (data['id'] as num).toInt() : null,
             name: data['name'] ?? 'Desconocido',
             barcode: data['codigo'] ?? '',
+            codbar: parseResult.codbar,
             family: data['familia'] ?? '',
             stock: 0,
             regularPrice: regularPrice,
             finalPrice: parseResult.mainPrice,
             unitLabel: parseResult.unitLabel,
-            taxPercent: _parseDouble(data['impuesto'] ?? data['iva']),
+            taxPercent: parseResult.taxPercent,
             discounts: parseResult.discounts,
             imageUrl: null, // Will be resolved by pendingImage
             imageBase64: null,
@@ -236,6 +237,8 @@ class ProductService {
     double mainPrice = 0.0;
     double discountAmount = 0.0;
     String unitLabel = '';
+    String mainCodbar = '';
+    double taxPercent = 0.0;
     List<PresentationPrice> presentations = [];
     List<Discount> discounts = [];
     bool foundMainPrice = false;
@@ -246,6 +249,7 @@ class ProductService {
       final pvp = _parseDouble(p['PVP']);
       final name = p['name']?.toString() ?? '';
       final itemId = p['id']?.toString() ?? p['codigo']?.toString() ?? '';
+      final codbar = p['codbar']?.toString() ?? '';
       final factor = _parseDouble(p['factor']);
       final discountPercent = _parseDouble(p['descuento']);
       final itemDiscountAmount = _parseDouble(p['descuento_monto']);
@@ -256,7 +260,9 @@ class ProductService {
         // First main unit found - extract main price info
         mainPrice = pvp;
         discountAmount = itemDiscountAmount;
-        unitLabel = _cleanUnitLabel(name);
+        unitLabel = name;
+        mainCodbar = codbar;
+        taxPercent = _parseDouble(p['iva_porcentaje']);
         foundMainPrice = true;
 
         if (discountPercent > 0) {
@@ -274,6 +280,7 @@ class ProductService {
           price: pvp,
           discountPercent: discountPercent,
           discountAmount: itemDiscountAmount,
+          codbar: codbar,
         ));
       }
     }
@@ -287,6 +294,8 @@ class ProductService {
       mainPrice: mainPrice,
       discountAmount: discountAmount,
       unitLabel: unitLabel,
+      codbar: mainCodbar,
+      taxPercent: taxPercent,
       presentations: presentations,
       discounts: discounts,
     );
@@ -297,12 +306,8 @@ class ProductService {
     return (factor - 1.0).abs() < 0.001 || name.toUpperCase().contains('UNIDAD');
   }
 
-  /// Clean unit label: "UNIDAD X 1" -> "UNIDAD"
+  /// Clean unit label (kept for reference, no longer strips " X 1")
   String _cleanUnitLabel(String name) {
-    final rawName = name.toUpperCase();
-    if (rawName.contains(' X 1')) {
-      return rawName.replaceAll(' X 1', '').trim();
-    }
     return name;
   }
 
@@ -318,6 +323,8 @@ class _PricesParseResult {
   final double mainPrice;
   final double discountAmount;
   final String unitLabel;
+  final String codbar;
+  final double taxPercent;
   final List<PresentationPrice> presentations;
   final List<Discount> discounts;
 
@@ -325,6 +332,8 @@ class _PricesParseResult {
     required this.mainPrice,
     required this.discountAmount,
     required this.unitLabel,
+    this.codbar = '',
+    this.taxPercent = 0.0,
     required this.presentations,
     required this.discounts,
   });
