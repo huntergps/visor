@@ -96,6 +96,7 @@ class PrinterService {
 
     return '^XA\n'
         '^CI28\n' // UTF-8 encoding (Ñ, tildes, etc.)
+        '^MMT\n' // Tear-off mode: advance label to tear bar after printing
         '^PW609\n'
         '^LL0200\n'
         '^LS0\n'
@@ -119,6 +120,7 @@ class PrinterService {
 
     return '^XA\n'
         '^CI28\n' // UTF-8 encoding (Ñ, tildes, etc.)
+        '^MMT\n' // Tear-off mode: advance label to tear bar after printing
         '^PW609\n'
         '^LL0200\n'
         '^LS0\n'
