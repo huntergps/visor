@@ -29,6 +29,7 @@ class PrinterService {
   /// Whether Bluetooth is available on this platform
   bool get isBluetoothSupported => Platform.isAndroid || Platform.isIOS;
 
+
   /// Loads printer config from SharedPreferences
   PrinterConfig? getConfig() {
     final config = AppConfigService();
@@ -96,7 +97,6 @@ class PrinterService {
 
     return '^XA\n'
         '^CI28\n' // UTF-8 encoding (Ñ, tildes, etc.)
-        '^MMT\n' // Tear-off mode: advance label to tear bar after printing
         '^PW609\n'
         '^LL0200\n'
         '^LS0\n'
@@ -120,7 +120,6 @@ class PrinterService {
 
     return '^XA\n'
         '^CI28\n' // UTF-8 encoding (Ñ, tildes, etc.)
-        '^MMT\n' // Tear-off mode: advance label to tear bar after printing
         '^PW609\n'
         '^LL0200\n'
         '^LS0\n'
@@ -156,16 +155,21 @@ class PrinterService {
     const printerSetup =
         '! U1 setvar "device.languages" "zpl"\r\n'
         '! U1 setvar "ezpl.media_type" "mark"\r\n'
-        '! U1 setvar "ezpl.head_close_action" "no_motion"\r\n'
-        '! U1 setvar "ezpl.power_up_action" "no_motion"\r\n';
+        '! U1 setvar "ezpl.head_close_action" "feed"\r\n'
+        '! U1 setvar "ezpl.power_up_action" "feed"\r\n';
 
     const zplSetup =
         '^XA'
         '^PW609'
         '^LL200'
         '^MNM'  // Mark mode: detect black marks on back
-        '^JUS'
+        '^MMT'  // Tear-off mode: advance to tear bar after print
+        '^JUS'  // Save all above to flash (persists across power cycles)
         '^XZ';
+
+    // Feed one label to pre-position media at tear bar.
+    // After this, the printer knows its position and first real print works correctly.
+    const positionFeed = '! U1 do "device.feed" ""\r\n';
 
     try {
       if (config.type == PrinterType.bluetooth) {
@@ -174,6 +178,9 @@ class PrinterService {
         await Future.delayed(const Duration(seconds: 1));
         await _btChannel.invokeMethod('send', {'data': zplSetup});
         await Future.delayed(const Duration(seconds: 2));
+        // Pre-position: blank label so printer knows its tear-off position
+        await _btChannel.invokeMethod('send', {'data': positionFeed});
+        await Future.delayed(const Duration(seconds: 1));
         await _btChannel.invokeMethod('disconnect');
       } else {
         final socket = await Socket.connect(
@@ -187,6 +194,10 @@ class PrinterService {
         socket.add(utf8.encode(zplSetup));
         await socket.flush();
         await Future.delayed(const Duration(seconds: 2));
+        // Pre-position: blank label so printer knows its tear-off position
+        socket.add(utf8.encode(positionFeed));
+        await socket.flush();
+        await Future.delayed(const Duration(seconds: 1));
         await socket.close();
       }
       return null;
@@ -227,8 +238,10 @@ class PrinterService {
         port,
         timeout: const Duration(seconds: 5),
       );
+
       socket.add(utf8.encode(zpl));
       await socket.flush();
+
       return null;
     } on SocketException catch (e) {
       return 'Error de conexión WiFi: ${e.message}';
