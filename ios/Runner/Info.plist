@@ -28,6 +28,10 @@
 	<true/>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>Se necesita Bluetooth para conectar con la impresora de etiquetas</string>
+	<key>UISupportedExternalAccessoryProtocols</key>
+	<array>
+		<string>com.zebra.rawport</string>
+	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>Se necesita la cámara para escanear códigos de barras y tomar fotos de productos</string>
 	<key>NSPhotoLibraryUsageDescription</key>

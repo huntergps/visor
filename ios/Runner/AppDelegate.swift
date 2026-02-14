@@ -3,7 +3,7 @@ import UIKit
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
-  private let blePrinterManager = BlePrinterManager()
+  private let printerManager = ZebraPrinterManager()
 
   override func application(
     _ application: UIApplication,
@@ -23,21 +23,20 @@ import UIKit
 
       switch call.method {
       case "getPairedDevices":
-        // On iOS there's no "paired devices" list — we scan for nearby BLE devices
-        self.blePrinterManager.scanForDevices(result: result)
+        self.printerManager.getPairedDevices(result: result)
 
       case "connect":
         let args = call.arguments as? [String: Any]
         let address = args?["address"] as? String ?? ""
-        self.blePrinterManager.connect(address: address, result: result)
+        self.printerManager.connect(address: address, result: result)
 
       case "send":
         let args = call.arguments as? [String: Any]
         let data = args?["data"] as? String ?? ""
-        self.blePrinterManager.send(data: data, result: result)
+        self.printerManager.send(data: data, result: result)
 
       case "disconnect":
-        self.blePrinterManager.disconnect(result: result)
+        self.printerManager.disconnect(result: result)
 
       default:
         result(FlutterMethodNotImplemented)
