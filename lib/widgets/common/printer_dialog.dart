@@ -506,12 +506,15 @@ class _PrinterDialogState extends State<PrinterDialog> {
               child: Center(child: CircularProgressIndicator()),
             )
           else if (_pairedDevices.isEmpty)
-            const Padding(
-              padding: EdgeInsets.all(16),
+            Padding(
+              padding: const EdgeInsets.all(16),
               child: Text(
-                'No se encontraron dispositivos pareados.\n'
-                'Paree la impresora desde Ajustes de Bluetooth.',
-                style: TextStyle(color: Colors.grey),
+                Platform.isIOS
+                    ? 'No se encontraron impresoras cercanas.\n'
+                      'Encienda la impresora y active Bluetooth.'
+                    : 'No se encontraron dispositivos pareados.\n'
+                      'Paree la impresora desde Ajustes de Bluetooth.',
+                style: const TextStyle(color: Colors.grey),
               ),
             )
           else
@@ -545,7 +548,9 @@ class _PrinterDialogState extends State<PrinterDialog> {
           TextButton.icon(
             onPressed: _loadPairedDevices,
             icon: const Icon(Icons.refresh, size: 18),
-            label: const Text('Actualizar dispositivos'),
+            label: Text(Platform.isIOS
+                ? 'Buscar impresoras'
+                : 'Actualizar dispositivos'),
           ),
         ],
 

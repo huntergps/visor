@@ -26,6 +26,8 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Se necesita Bluetooth para conectar con la impresora de etiquetas</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Se necesita la cámara para escanear códigos de barras y tomar fotos de productos</string>
 	<key>NSPhotoLibraryUsageDescription</key>

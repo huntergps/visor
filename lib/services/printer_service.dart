@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 import '../models/printer_config.dart';
 import '../models/product.dart';
@@ -21,13 +22,18 @@ class PrinterService {
   factory PrinterService() => _instance;
   PrinterService._internal();
 
-  /// Native Bluetooth channel for paired devices, connect, send, disconnect
+  /// Native Bluetooth channel (Android SPP only)
   static const _btChannel = MethodChannel(
     'tech.galapagos.theosvisor/bluetooth',
   );
 
-  /// Whether Bluetooth is available on this platform (Android only)
-  bool get isBluetoothSupported => Platform.isAndroid;
+  /// Whether Bluetooth is available on this platform
+  bool get isBluetoothSupported => Platform.isAndroid || Platform.isIOS;
+
+  // ── BLE state for iOS (flutter_blue_plus) ──
+  BluetoothDevice? _bleDevice;
+  BluetoothCharacteristic? _bleWriteChar;
+  List<ScanResult> _bleScanResults = [];
 
   /// Loads printer config from SharedPreferences
   PrinterConfig? getConfig() {
@@ -147,39 +153,41 @@ class PrinterService {
   }
 
   /// Configure printer: set media type, label size, and head close action.
-  /// Saves settings to printer memory so they survive power cycles.
   Future<String?> calibrate() async {
     final config = getConfig();
     if (config == null) return 'Impresora no configurada';
 
-    // SGD commands to configure printer (work in both CPCL and ZPL)
     const printerSetup =
-        // Set ZPL mode
         '! U1 setvar "device.languages" "zpl"\r\n'
-        // Set media type to continuous (fixed advance, no sensor)
-        '! U1 setvar "ezpl.media_type" "continuous"\r\n'
-        // Head close action: no motion (don't feed blanks)
+        '! U1 setvar "ezpl.media_type" "mark"\r\n'
         '! U1 setvar "ezpl.head_close_action" "no_motion"\r\n'
-        // Power on action: no motion
         '! U1 setvar "ezpl.power_up_action" "no_motion"\r\n';
 
-    // ZPL: set label dimensions and save to memory
     const zplSetup =
         '^XA'
-        '^PW609' // Print width: 7.5cm = 609 dots
-        '^LL200' // Label length: 2.5cm = 200 dots
-        '^MNC' // Media tracking: continuous (fixed advance)
-        '^JUS' // Save settings to memory
+        '^PW609'
+        '^LL200'
+        '^MNM'  // Mark mode: detect black marks on back
+        '^JUS'
         '^XZ';
 
     try {
       if (config.type == PrinterType.bluetooth) {
-        await _btChannel.invokeMethod('connect', {'address': config.address});
-        await _btChannel.invokeMethod('send', {'data': printerSetup});
-        await Future.delayed(const Duration(seconds: 1));
-        await _btChannel.invokeMethod('send', {'data': zplSetup});
-        await Future.delayed(const Duration(seconds: 2));
-        await _btChannel.invokeMethod('disconnect');
+        if (Platform.isIOS) {
+          await _bleConnect(config.address);
+          await _bleSendData(printerSetup);
+          await Future.delayed(const Duration(seconds: 1));
+          await _bleSendData(zplSetup);
+          await Future.delayed(const Duration(seconds: 2));
+          await _bleDisconnect();
+        } else {
+          await _btChannel.invokeMethod('connect', {'address': config.address});
+          await _btChannel.invokeMethod('send', {'data': printerSetup});
+          await Future.delayed(const Duration(seconds: 1));
+          await _btChannel.invokeMethod('send', {'data': zplSetup});
+          await Future.delayed(const Duration(seconds: 2));
+          await _btChannel.invokeMethod('disconnect');
+        }
       } else {
         final socket = await Socket.connect(
           config.address,
@@ -234,7 +242,7 @@ class PrinterService {
       );
       socket.add(utf8.encode(zpl));
       await socket.flush();
-      return null; // success
+      return null;
     } on SocketException catch (e) {
       return 'Error de conexión WiFi: ${e.message}';
     } finally {
@@ -242,30 +250,31 @@ class PrinterService {
     }
   }
 
-  /// Switch printer language to ZPL (SGD command works in CPCL mode)
-  /// Then calibrate media to auto-detect label gaps
   static const _setZplCommand = '! U1 setvar "device.languages" "zpl"\r\n';
 
-  /// Send ZPL via Bluetooth
+  /// Send ZPL via Bluetooth (Android: native SPP, iOS: flutter_blue_plus BLE)
   Future<String?> _sendViaBluetooth(String zpl, String address) async {
     if (!isBluetoothSupported) {
       return 'Bluetooth no soportado en esta plataforma';
     }
 
+    if (Platform.isIOS) {
+      return _sendViaBleFbp(zpl, address);
+    }
+
+    // Android: native SPP channel
     try {
-      debugPrint('PrinterService: Connecting via BT to $address...');
+      debugPrint('PrinterService: Connecting via SPP to $address...');
       await _btChannel.invokeMethod('connect', {'address': address});
 
-      // Send ZPL label
       debugPrint('PrinterService: Sending ${zpl.length} bytes of ZPL...');
       await _btChannel.invokeMethod('send', {'data': zpl});
 
-      // Wait for Bluetooth buffer to finish transmitting before closing
       await Future.delayed(const Duration(milliseconds: 500));
 
       debugPrint('PrinterService: Done, disconnecting...');
       await _btChannel.invokeMethod('disconnect');
-      return null; // success
+      return null;
     } catch (e) {
       debugPrint('PrinterService: BT failed: $e');
       try {
@@ -275,17 +284,29 @@ class PrinterService {
     }
   }
 
-  /// Get list of paired Bluetooth devices (Android only)
+  // ══════════════════════════════════════════════════════════════
+  // iOS BLE via flutter_blue_plus
+  // ══════════════════════════════════════════════════════════════
+
+  /// Standard BLE services to skip when looking for printer data characteristic
+  static const _standardServiceUuids = {
+    '00001800-0000-1000-8000-00805f9b34fb', // Generic Access
+    '00001801-0000-1000-8000-00805f9b34fb', // Generic Attribute
+    '0000180a-0000-1000-8000-00805f9b34fb', // Device Information
+    '0000180f-0000-1000-8000-00805f9b34fb', // Battery
+  };
+
+  /// Scan for BLE devices (iOS) or paired devices (Android)
   Future<List<BtDevice>> getPairedDevices() async {
-    if (!isBluetoothSupported) {
-      debugPrint('PrinterService: Bluetooth not supported on this platform');
-      return [];
+    if (!isBluetoothSupported) return [];
+
+    if (Platform.isIOS) {
+      return _bleScanDevices();
     }
 
+    // Android: native channel
     try {
-      debugPrint(
-        'PrinterService: Getting paired devices via native channel...',
-      );
+      debugPrint('PrinterService: Getting paired devices via native channel...');
       final result = await _btChannel.invokeMethod('getPairedDevices');
       if (result is List) {
         final devices = result.map((item) {
@@ -305,6 +326,214 @@ class PrinterService {
     } catch (e) {
       debugPrint('PrinterService: Error getting paired devices: $e');
       return [];
+    }
+  }
+
+  /// iOS: Scan for BLE devices using flutter_blue_plus
+  Future<List<BtDevice>> _bleScanDevices() async {
+    try {
+      // Wait up to 3s for adapter to be on (may be initializing)
+      final state = await FlutterBluePlus.adapterState
+          .where((s) => s == BluetoothAdapterState.on)
+          .first
+          .timeout(const Duration(seconds: 3), onTimeout: () {
+        return BluetoothAdapterState.off;
+      });
+      if (state != BluetoothAdapterState.on) {
+        debugPrint('PrinterService: BLE adapter is off');
+        return [];
+      }
+
+      debugPrint('PrinterService: BLE scanning for 4 seconds...');
+      _bleScanResults = [];
+
+      await FlutterBluePlus.startScan(
+        timeout: const Duration(seconds: 4),
+        androidUsesFineLocation: false,
+      );
+
+      // Wait for scan to complete
+      await FlutterBluePlus.isScanning.where((s) => s == false).first;
+
+      _bleScanResults = FlutterBluePlus.lastScanResults;
+
+      final devices = _bleScanResults
+          .where((r) => r.device.platformName.isNotEmpty)
+          .map((r) => BtDevice(
+                name: r.device.platformName,
+                address: r.device.remoteId.str,
+              ))
+          .toList();
+
+      debugPrint('PrinterService: BLE found ${devices.length} devices');
+      for (final d in devices) {
+        debugPrint('PrinterService:   - ${d.name} (${d.address})');
+      }
+      return devices;
+    } catch (e) {
+      debugPrint('PrinterService: BLE scan error: $e');
+      return [];
+    }
+  }
+
+  /// iOS: Connect to BLE device by remoteId.
+  /// Does a fresh scan to ensure iOS BLE stack has an active peripheral reference,
+  /// then connects using that freshly discovered device.
+  Future<void> _bleConnect(String address) async {
+    debugPrint('PrinterService: BLE connecting to $address...');
+
+    // Check if already connected
+    final connectedDevices = FlutterBluePlus.connectedDevices;
+    final alreadyConnected = connectedDevices
+        .where((d) => d.remoteId.str == address)
+        .toList();
+
+    BluetoothDevice device;
+
+    if (alreadyConnected.isNotEmpty) {
+      debugPrint('PrinterService: BLE device already connected, reusing');
+      device = alreadyConnected.first;
+    } else {
+      // Fresh scan to get an active peripheral reference (critical for iOS BLE)
+      debugPrint('PrinterService: BLE pre-connect scan...');
+      BluetoothDevice? scannedDevice;
+
+      // Listen for scan results and stop as soon as we find our target
+      final subscription = FlutterBluePlus.onScanResults.listen((results) {
+        for (final r in results) {
+          if (r.device.remoteId.str == address) {
+            scannedDevice = r.device;
+            debugPrint('PrinterService: BLE found target in scan, RSSI=${r.rssi}');
+            FlutterBluePlus.stopScan();
+            break;
+          }
+        }
+      });
+
+      await FlutterBluePlus.startScan(
+        timeout: const Duration(seconds: 8),
+        androidUsesFineLocation: false,
+      );
+
+      // Wait for scan to finish
+      await FlutterBluePlus.isScanning.where((s) => s == false).first;
+      await subscription.cancel();
+
+      if (scannedDevice != null) {
+        device = scannedDevice!;
+      } else {
+        // Fallback: try from previous scan results or by ID
+        debugPrint('PrinterService: BLE target not found in pre-scan, trying fromId...');
+        final scanMatch = _bleScanResults
+            .where((r) => r.device.remoteId.str == address)
+            .toList();
+        device = scanMatch.isNotEmpty
+            ? scanMatch.first.device
+            : BluetoothDevice.fromId(address);
+      }
+
+      debugPrint('PrinterService: BLE calling connect()...');
+      await device.connect(
+        license: License.free,
+        timeout: const Duration(seconds: 15),
+        mtu: null,
+        autoConnect: false,
+      );
+      debugPrint('PrinterService: BLE connected!');
+
+      // Request MTU
+      try {
+        await device.requestMtu(512);
+        debugPrint('PrinterService: BLE MTU=${device.mtuNow}');
+      } catch (e) {
+        debugPrint('PrinterService: BLE MTU request failed (ok): $e');
+      }
+    }
+
+    // Discover services and find writable characteristic
+    final services = await device.discoverServices();
+    debugPrint('PrinterService: BLE found ${services.length} services');
+
+    BluetoothCharacteristic? writeChar;
+
+    for (final svc in services) {
+      final svcUuid = svc.uuid.str.toLowerCase();
+      if (_standardServiceUuids.contains(svcUuid)) {
+        debugPrint('PrinterService: BLE skip standard service $svcUuid');
+        continue;
+      }
+
+      debugPrint('PrinterService: BLE vendor service ${svc.uuid}');
+      for (final c in svc.characteristics) {
+        final props = c.properties;
+        debugPrint(
+          'PrinterService: BLE   char ${c.uuid} '
+          'W=${props.write} WnR=${props.writeWithoutResponse} '
+          'R=${props.read} N=${props.notify}',
+        );
+
+        if (writeChar == null &&
+            (props.writeWithoutResponse || props.write)) {
+          writeChar = c;
+          debugPrint('PrinterService: BLE >>> SELECTED ${c.uuid}');
+        }
+      }
+    }
+
+    if (writeChar == null) {
+      await device.disconnect();
+      throw Exception('Sin característica de escritura BLE');
+    }
+
+    _bleDevice = device;
+    _bleWriteChar = writeChar;
+  }
+
+  /// iOS: Send string data via BLE
+  Future<void> _bleSendData(String data) async {
+    final char = _bleWriteChar;
+    if (char == null) throw Exception('No hay conexión BLE');
+
+    final bytes = utf8.encode(data);
+    final mtu = _bleDevice?.mtuNow ?? 23;
+    final chunkSize = (mtu - 3).clamp(20, 512);
+    final useResponse = char.properties.write;
+
+    debugPrint(
+      'PrinterService: BLE sending ${bytes.length}B, MTU=$mtu, '
+      'chunk=$chunkSize, withResponse=$useResponse',
+    );
+
+    for (var offset = 0; offset < bytes.length; offset += chunkSize) {
+      final end = (offset + chunkSize).clamp(0, bytes.length);
+      final chunk = bytes.sublist(offset, end);
+      await char.write(chunk, withoutResponse: !useResponse);
+    }
+
+    debugPrint('PrinterService: BLE send complete');
+  }
+
+  /// iOS: Disconnect BLE
+  Future<void> _bleDisconnect() async {
+    try {
+      await _bleDevice?.disconnect();
+    } catch (_) {}
+    _bleDevice = null;
+    _bleWriteChar = null;
+  }
+
+  /// iOS: Send ZPL via BLE using flutter_blue_plus
+  Future<String?> _sendViaBleFbp(String zpl, String address) async {
+    try {
+      await _bleConnect(address);
+      await _bleSendData(zpl);
+      await Future.delayed(const Duration(milliseconds: 2000));
+      await _bleDisconnect();
+      return null;
+    } catch (e) {
+      debugPrint('PrinterService: BLE failed: $e');
+      await _bleDisconnect();
+      return 'Error Bluetooth: $e';
     }
   }
 }
